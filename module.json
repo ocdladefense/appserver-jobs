@@ -1,0 +1,18 @@
+{
+	"comment": "Module definition file.",
+	"name": "jobs",
+	"description": "View and post OCDLA jobs.",
+	"files": [
+		"Job.php"
+	],
+	"routes": {
+		"jobs": {
+			"callback":"home",
+			"content-type":"text\/html"
+		},
+		"object/job/list": {
+			"callback":"listJobs",
+			"content-type":"text\/html"
+		}
+	}
+}
