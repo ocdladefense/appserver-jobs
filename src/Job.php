@@ -1,5 +1,7 @@
 <?php
 
+use Database\SObject as SObject;
+
 
 class Job extends SObject {
 
@@ -7,7 +9,5 @@ class Job extends SObject {
 		parent::__construct("job",$id);
 	}
 	
-	public function home() {
-		return "View and post OCDLA jobs.";
-	}
+
 }

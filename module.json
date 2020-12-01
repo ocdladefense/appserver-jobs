@@ -3,16 +3,49 @@
 	"name": "jobs",
 	"description": "View and post OCDLA jobs.",
 	"files": [
-		"Job.php"
+		"Job.php",
+		"ListTemplate.php"
 	],
 	"routes": {
+		"attachment/%id/%name": {
+			"callback": "getAttachment",
+			"content-type": "application/base64"
+		},
 		"jobs": {
 			"callback":"home",
 			"content-type":"text\/html"
 		},
+		"jobs/new": {
+			"callback": "edit",
+			"content-type": "text\/html"
+		},
+		"jobs/create": {
+			"callback": "createPosting",
+			"content-type": "text\/html"
+		},
 		"object/job/list": {
-			"callback":"listJobs",
-			"content-type":"text\/html"
+			"callback": "listJobs",
+			"content-type": "text\/html"
+		},
+		"job/create": {
+			"callback": "create",
+			"content-type": "text\/html"
+		},
+		"job/%id/edit": {
+			"callback": "edit",
+			"content-type": "text\/html"
+		},
+		"job/%id/delete": {
+			"callback": "delete",
+			"content-type": "text\/html"
+		},
+		"documents": {
+			"callback": "showSubjects",
+			"content-type": "text\/html"
+		},
+		"documents/%subject": {
+			"callback": "showDocuments",
+			"content-type": "text\/html"
 		}
 	}
 }
