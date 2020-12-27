@@ -36,6 +36,11 @@
   
 
 		<ul class="table-row">
+		<?php if($isAdmin || $isMember): ?>
+			<li class="table-header">Actions</li>
+		<?php else: ?>
+			<li class="table-header"></li>
+		<?php endif; ?>
 			<li class="table-header">Title</li>
 			<li class="table-header">Posted</li>
 			<li class="table-header">Closes</li>
@@ -69,8 +74,15 @@
 				$attachment = isset($attachments) && count($attachments) ? $attachments[0] : null;
 				$resource = isset($attachment) ? "/attachment/{$attachment['Id']}/{$attachment['Name']}" : null;
 			?>
-				<ul class="table-row">
-					<li class="table-cell cart-first"><?php print $job["Name"]; ?></li>
+				<ul class="table-row"> 
+					<?php if($isAdmin || $isMember): ?>
+						<li class="table-cell cart-first"><a target="_blank" href="/job/<?php print $job["Id"]; ?>/edit">Edit
+						</a><a target="_blank" href="/job/<?php print $job["Id"]; ?>/delete">Delete
+						</a></li> 
+					<?php else: ?>
+						<li class="table-cell cart-middle"></li>
+					<?php endif; ?>
+					<li class="table-cell cart-middle"><?php print $job["Name"]; ?></li>
 					<li class="table-cell cart-middle"><?php print $job["PostingDate__c"]; ?></li>
 					<li class="table-cell cart-middle">
 					
