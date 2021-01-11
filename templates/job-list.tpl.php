@@ -6,16 +6,15 @@
 
 			<div>
 				<h2>OCDLA Jobs</h2>
-				<a href='https://www.ocdla.org/employment/jobs_newocdla.cfm' target='_new'>Link to existing job app</a>
 			<div>
 			
 			<div>
 				
 				<h5>
 		
-					<a href="./jobposting_newocdla.cfm">
+					<a href="/jobs/new">
 						<img src="/content/images/icon-postit.jpg" alt="login" width="25" height="25" border="0" style="border:none;" />
-						Add / Edit / Delete a Post
+						Create a Job Posting
 					</a>
 				</h5>
 				

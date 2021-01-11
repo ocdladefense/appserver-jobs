@@ -17,7 +17,8 @@
 		},
 		"jobs/new": {
 			"callback": "edit",
-			"content-type": "text\/html"
+			"content-type": "text\/html",
+			"access": "is_authenticated" 
 		},
 		"jobs/create": {
 			"callback": "createPosting",
@@ -36,7 +37,7 @@
 			"content-type": "text\/html"
 		},
 		"job/%id/delete": {
-			"callback": "delete",
+			"callback": "deletePosting",
 			"content-type": "text\/html"
 		},
 		"documents": {
