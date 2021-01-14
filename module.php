@@ -21,9 +21,8 @@ class JobsModule extends Module
 
 	public function home()
 	{
-
-
 		global $oauth_config;
+
 		// Prepare data for the template.
 		// $builder = QueryBuilder::fromJson($json);
 
@@ -154,24 +153,18 @@ class JobsModule extends Module
 		$force = new Salesforce($oauth_config);
 
 		//"Job__c is the name of the object I created in Salesforce//
-		$obj = $force->deleteRecordsFromSession("Job__c", $Id);
-		
+		$obj = $force->deleteRecordFromSession("Job__c", $Id);
 		//returning http response status 302 returns to homepage 
 		header('Location: /jobs', true, 302);
 
 
-		return $obj["records"][0]["Id"]; //returned in create/update -> $obj["records"][0]["Id"];
+		return $obj["records"][0]["Id"];
 	}
 
 
 	public function createPosting()
 	{
-		
-		//var_dump($obj);
-		//ini_set('display_errors', 1);
-		//echo "Hello World!";
-		//phpinfo();
-		//exit;
+
 		global $oauth_config;
 
 		// Represents data submitted to endpoint, i.e., from an HTML form.
