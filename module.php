@@ -5,7 +5,6 @@ use \File\File as File;
 
 class JobsModule extends Module
 {
-
 	/*TEST TRASH to help degub*/
 	//var_dump($obj);
 	//ini_set('display_errors', 1);
@@ -18,6 +17,7 @@ class JobsModule extends Module
 	{
 		parent::__construct();
 	}
+
 
 	public function home()
 	{
@@ -84,7 +84,6 @@ class JobsModule extends Module
 	 */
 	public function edit($Id = null)
 	{
-
 		global $oauth_config;
 
 		$tpl = new Template("job-form");
@@ -134,11 +133,13 @@ class JobsModule extends Module
 		$force = new Salesforce($oauth_config);
 
 		//queries the datbase for selected record by Id//
-		$record = $force->createQueryFromSession("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c WHERE Id = '" . $Id . "'");
-
+		$result = $force->createQueryFromSession("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c WHERE Id = '" . $Id . "'");
+		$record = $result["records"][0];
+		//var_dump($record);
+		//exit;
 
 		//render job selected to edit//
-		return $tpl->render(array("job" => $record["records"][0]));
+		return $tpl->render(array("job" => $record));
 	}
 
 
@@ -148,15 +149,14 @@ class JobsModule extends Module
 		// Represents data submitted to endpoint, i.e., from an HTML form.
 
 		$req = $this->getRequest();
-		//$body = $req->getBody();
 
 		$force = new Salesforce($oauth_config);
 
 		//"Job__c is the name of the object I created in Salesforce//
 		$obj = $force->deleteRecordFromSession("Job__c", $Id);
+
 		//returning http response status 302 returns to homepage 
 		header('Location: /jobs', true, 302);
-
 
 		return $obj["records"][0]["Id"];
 	}
@@ -164,13 +164,11 @@ class JobsModule extends Module
 
 	public function createPosting()
 	{
-
 		global $oauth_config;
 
 		// Represents data submitted to endpoint, i.e., from an HTML form.
 		$req = $this->getRequest();
 		$body = $req->getBody();
-//		var_dump($body);
 		$force = new Salesforce($oauth_config);
 
 		//"Job__c is the name of the Job sObject I created in Salesforce//
@@ -181,10 +179,8 @@ class JobsModule extends Module
 			$obj = $force->updateRecordFromSession("Job__c", $body);
 			
 		}
-
-	//	var_dump($obj);
-	//	exit;
-
+		//var_dump($body);
+		//exit;
 		//returning http response status 302 returns to homepage//
 		header('Location: /jobs', true, 302);
 
