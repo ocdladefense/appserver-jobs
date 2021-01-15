@@ -1,9 +1,10 @@
 <?php
-
+	$classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
+		
 ?>
 
-<form method="post" action="/jobs/create">
-
+<form  class="<?php print $classNames; ?>"  method="post" action="/jobs/create">
+	
 	<h2>Enter the job!</h2>
 
 	<label for="Name">Job Title</label><br />
@@ -18,7 +19,7 @@
 	<label for="Location__c">Location</label><br />
 	<input type="text" name="Location__c" id="Location__c" value="<?php print $job["Location__c"]; ?>" placeholder="Enter the location." />
 	<br /><br />
-	
+
 	<label for="PostingDate__c">Posting Date</label><br />
 	<input type="date" name="PostingDate__c" id="PostingDate__c" value="<?php print $job["PostingDate__c"]; ?>" placeholder="Enter the date posted." />
 	<br /><br />
@@ -28,7 +29,12 @@
 	<br /><br />
 
 	<label for="OpenUntilFilled__c">Open Until Filled?</label>&nbsp&nbsp
-	<input type="checkbox" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="<?php print $job["OpenUntilFilled__c"]; ?>" />
+
+	<?php if($job["OpenUntilFilled__c"] == true): ?>
+		<input type="checkbox" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="<?php print $job["OpenUntilFilled__c"]; ?>" checked/>
+	<?php else: ?>
+		<input type="checkbox" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="<?php print $job["OpenUntilFilled__c"]; ?>"/>
+	<?php endif; ?>
 	<br /><br />
 
 	<input type="submit" value="Save" />
