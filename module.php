@@ -177,7 +177,6 @@ class JobsModule extends Module
 			$obj = $force->createRecordsFromSession("Job__c", $body);
 		} else {
 			$obj = $force->updateRecordFromSession("Job__c", $body);
-			
 		}
 		//var_dump($body);
 		//exit;

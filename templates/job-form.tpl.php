@@ -33,26 +33,26 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 
 	<!--this if statement allows the closingDate__c to be toggled repeatedly in form view-->
 	<?php if ($job["OpenUntilFilled__c"] == true) : ?>
-	<div  class="hidden" id="closingDate">
-	<?php else : ?>
-	<div id="closingDate">
-	<?php endif; ?>
-	<label for="ClosingDate__c">Closing Date</label><br />
-	<input type="date" name="ClosingDate__c" id="ClosingDate__c" value="<?php print $job["ClosingDate__c"]; ?>" placeholder="Enter the closing date." />
-	<br /><br />
-	</div>
-
-	<div onclick="handleCheck()">
-		<label for="OpenUntilFilled__c">Open Until Filled?</label>&nbsp&nbsp
-		<?php if ($job["OpenUntilFilled__c"] == true) : ?>
-			<input type="checkbox" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="<?php print $job["OpenUntilFilled__c"]; ?>" checked />
+		<div class="hidden" id="closingDate">
 		<?php else : ?>
-			<input type="checkbox" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="<?php print $job["OpenUntilFilled__c"]; ?>" />
-		<?php endif; ?>
-		<br /><br />
-	</div>
+			<div id="closingDate">
+			<?php endif; ?>
+			<label for="ClosingDate__c">Closing Date</label><br />
+			<input type="date" name="ClosingDate__c" id="ClosingDate__c" value="<?php print $job["ClosingDate__c"]; ?>" placeholder="Enter the closing date." />
+			<br /><br />
+			</div>
 
-	<input type="submit" value="Save" />
+			<div onclick="handleCheck()">
+				<label for="OpenUntilFilled__c">Open Until Filled?</label>&nbsp&nbsp
+				<?php if ($job["OpenUntilFilled__c"] == true) : ?>
+					<input type="checkbox" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="<?php print $job["OpenUntilFilled__c"]; ?>" checked />
+				<?php else : ?>
+					<input type="checkbox" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="<?php print $job["OpenUntilFilled__c"]; ?>" />
+				<?php endif; ?>
+				<br /><br />
+			</div>
+
+			<input type="submit" value="Save" />
 </form>
 
 <script>
@@ -62,19 +62,18 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 	//*JavaScript function to toggle closing date in form view*//
 	function handleCheck() {
 
-	if (window.getComputedStyle(closingDate).display == "none") {
-		document.getElementById("closingDate").classList.remove('hidden');
+		if (window.getComputedStyle(closingDate).display == "none") {
+			document.getElementById("closingDate").classList.remove('hidden');
 
-		//console.log("true"); //testTrash
-	}	
-    else {
-		document.getElementById("closingDate").classList.add('hidden');
-		document.getElementById("ClosingDate__c").innerHTML = null;
-		
-		//console.log("false");  //testTrash
-	}
+			//console.log("true"); //testTrash
+		} else {
+			document.getElementById("closingDate").classList.add('hidden');
+			document.getElementById("ClosingDate__c").innerHTML = null;
 
-		
-			
+			//console.log("false");  //testTrash
+		}
+
+
+
 	}
 </script>
