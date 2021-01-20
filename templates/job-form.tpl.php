@@ -5,12 +5,12 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 
 <!--CSS to toggle closing date-->
 <style>
-	.hidden {
+	.open-until-filled #closingDate {
 		display: none;
 	}
 </style>
 
-<form class="<?php print $classNames; ?>" name="form-jobs" method="post" action="/jobs/create">
+<form class="<?php print $classNames; ?>" id="jobs-form" name="form-jobs" method="post" action="/jobs/create">
 
 	<h2>Enter the job!</h2>
 
@@ -31,49 +31,48 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 	<input type="date" name="PostingDate__c" id="PostingDate__c" value="<?php print $job["PostingDate__c"]; ?>" placeholder="Enter the date posted." />
 	<br /><br />
 
-	<!--this if statement allows the closingDate__c to be toggled repeatedly in form view-->
-	<?php if ($job["OpenUntilFilled__c"] == true) : ?>
-		<div class="hidden" id="closingDate">
+
+
+	<div id="closingDate">
+	<!--beginning closingdate field-->
+		<label for="ClosingDate__c">Closing Date</label><br />
+		<input type="date" name="ClosingDate__c" id="ClosingDate__c" value="<?php print $job["ClosingDate__c"]; ?>" placeholder="Enter the closing date." />
+		<br /><br />
+	</div>
+
+		
+
+	<div onclick="handleCheck()">
+		<label for="OpenUntilFilled__c">Open Until Filled?</label>&nbsp&nbsp
+		<?php if ($job["OpenUntilFilled__c"] == true) : ?>
+			<input type="checkbox" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="true" checked />
 		<?php else : ?>
-			<div id="closingDate">
-			<?php endif; ?>
-			<label for="ClosingDate__c">Closing Date</label><br />
-			<input type="date" name="ClosingDate__c" id="ClosingDate__c" value="<?php print $job["ClosingDate__c"]; ?>" placeholder="Enter the closing date." />
-			<br /><br />
-			</div>
+			<input type="checkbox" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="true" />
+		<?php endif; ?>
+		<br /><br />
+	</div>
 
-			<div onclick="handleCheck()">
-				<label for="OpenUntilFilled__c">Open Until Filled?</label>&nbsp&nbsp
-				<?php if ($job["OpenUntilFilled__c"] == true) : ?>
-					<input type="checkbox" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="<?php print $job["OpenUntilFilled__c"]; ?>" checked />
-				<?php else : ?>
-					<input type="checkbox" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="<?php print $job["OpenUntilFilled__c"]; ?>" />
-				<?php endif; ?>
-				<br /><br />
-			</div>
-
-			<input type="submit" value="Save" />
+		<input type="submit" value="Save" />
 </form>
 
 <script>
 	//*Variables*//
-	let closingDate = document.getElementById("closingDate");
+	
 
 	//*JavaScript function to toggle closing date in form view*//
 	function handleCheck() {
 
-		if (window.getComputedStyle(closingDate).display == "none") {
-			document.getElementById("closingDate").classList.remove('hidden');
+		let jobsForm = document.getElementById('jobs-form');
+		let openUntilFilled = document.getElementById('OpenUntilFilled__c');
+		let closingDate = document.getElementById("ClosingDate__c");
+		let isChecked = openUntilFilled.checked;
 
-			//console.log("true"); //testTrash
-		} else {
-			document.getElementById("closingDate").classList.add('hidden');
-			document.getElementById("ClosingDate__c").innerHTML = null;
-
-			//console.log("false");  //testTrash
+		if(isChecked) {
+			jobsForm.classList.add('open-until-filled');
+			closingDate.disbled = true;
+		}else {
+			jobsForm.classList.remove('open-until-filled');
+			closingDate.disbled = false;
 		}
-
-
-
 	}
 </script>
