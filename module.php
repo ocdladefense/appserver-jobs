@@ -169,9 +169,10 @@ class JobsModule extends Module
 		// Represents data submitted to endpoint, i.e., from an HTML form.
 		$req = $this->getRequest();
 		$body = $req->getBody();
+		
+		var_dump($body);
+		exit;
 		$force = new Salesforce($oauth_config);
-		//var_dump($body);
-		//exit;
 		//"Job__c is the name of the Job sObject I created in Salesforce//
 		if ($body->Id == "") {
 			unset($body->Id);

@@ -45,7 +45,7 @@
 			<li class="table-header">Closes</li>
 			<li class="table-header">Location</li>
 			<li class="table-header">Salary</li>
-			<li class="table-header">Other</li>
+			<li class="table-header">Attachments</li>
 		</ul>
 	
 		
@@ -75,8 +75,8 @@
 			?>
 				<ul class="table-row"> 
 					<?php if($isAdmin || $isMember): ?>
-						<li class="table-cell cart-first"><a target="_blank" href="/job/<?php print $job["Id"]; ?>/edit">Edit
-						</a><a target="_blank" href="/job/<?php print $job["Id"]; ?>/delete">Delete
+						<li class="table-cell cart-first"><a href="/job/<?php print $job["Id"]; ?>/edit">Edit
+						</a><a href="/job/<?php print $job["Id"]; ?>/delete">Delete
 						</a></li> 
 					<?php else: ?>
 						<li class="table-cell cart-middle"></li>

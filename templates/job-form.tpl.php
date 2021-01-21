@@ -10,7 +10,7 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 	}
 </style>
 
-<form class="<?php print $classNames; ?>" id="jobs-form" name="form-jobs" method="post" action="/jobs/create">
+<form onsubmit="onSubmit();" class="<?php print $classNames; ?>" id="jobs-form" name="form-jobs" method="post" action="/jobs/create">
 
 	<h2>Enter the job!</h2>
 
@@ -34,45 +34,59 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 
 
 	<div id="closingDate">
-	<!--beginning closingdate field-->
+		<!--beginning closingdate field-->
 		<label for="ClosingDate__c">Closing Date</label><br />
 		<input type="date" name="ClosingDate__c" id="ClosingDate__c" value="<?php print $job["ClosingDate__c"]; ?>" placeholder="Enter the closing date." />
 		<br /><br />
 	</div>
 
-		
+
 
 	<div onclick="handleCheck()">
 		<label for="OpenUntilFilled__c">Open Until Filled?</label>&nbsp&nbsp
 		<?php if ($job["OpenUntilFilled__c"] == true) : ?>
-			<input type="checkbox" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="true" checked />
+			<input type="checkbox" name="OpenUntilFilledHelper__c" id="OpenUntilFilledHelper__c" value="true" checked />
 		<?php else : ?>
-			<input type="checkbox" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="true" />
+			<input type="checkbox" name="OpenUntilFilledHelper__c" id="OpenUntilFilledHelper__c" value="true" />
 		<?php endif; ?>
 		<br /><br />
 	</div>
+	<input type="hidden" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="" />
 
-		<input type="submit" value="Save" />
+	<label for="fileUpload">Upload Files</label>
+	<input type="file" id="fileUpload" name="fileUpload" >
+
+	<input type="submit" value="Save" />
 </form>
 
 <script>
-	//*Variables*//
-	
+	function onSubmit() {
+		this.openUntilFilled = document.getElementById('OpenUntilFilledHelper__c');
+		this.openUntilFilled.disabled = true;
+	}
 
 	//*JavaScript function to toggle closing date in form view*//
 	function handleCheck() {
 
-		let jobsForm = document.getElementById('jobs-form');
-		let openUntilFilled = document.getElementById('OpenUntilFilled__c');
-		let closingDate = document.getElementById("ClosingDate__c");
-		let isChecked = openUntilFilled.checked;
+		//*Variables*//
+		this.jobsForm = document.getElementById('jobs-form');
+		this.openUntilFilledHelper = document.getElementById('OpenUntilFilledHelper__c');
+		this.openUntilFilled = document.getElementById('OpenUntilFilled__c');
+		this.closingDate = document.getElementById("ClosingDate__c");
+		this.isChecked = this.openUntilFilledHelper.checked;
 
-		if(isChecked) {
-			jobsForm.classList.add('open-until-filled');
-			closingDate.disbled = true;
-		}else {
-			jobsForm.classList.remove('open-until-filled');
-			closingDate.disbled = false;
+
+		if (isChecked) {
+			this.jobsForm.classList.add('open-until-filled');
+			this.closingDate.disabled = true;
+			//0 out closing date field
+			this.openUntilFilled.value = "true";
+
+
+		} else {
+			this.jobsForm.classList.remove('open-until-filled');
+			this.closingDate.disabled = false;
+			this.openUntilFilled.value = "false";
 		}
 	}
 </script>
