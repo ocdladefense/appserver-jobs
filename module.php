@@ -5,7 +5,7 @@ use \File\File as File;
 
 class JobsModule extends Module
 {
-	/*TEST TRASH to help degub*/
+	/*TEST TRASH to help debug*/
 	//var_dump($obj);
 	//ini_set('display_errors', 1);
 	//echo "Hello World!";
@@ -169,18 +169,20 @@ class JobsModule extends Module
 		// Represents data submitted to endpoint, i.e., from an HTML form.
 		$req = $this->getRequest();
 		$body = $req->getBody();
+		
+		var_dump($body);
+		exit;
 		$force = new Salesforce($oauth_config);
-
 		//"Job__c is the name of the Job sObject I created in Salesforce//
 		if ($body->Id == "") {
 			unset($body->Id);
 			$obj = $force->createRecordsFromSession("Job__c", $body);
 		} else {
 			$obj = $force->updateRecordFromSession("Job__c", $body);
-			
 		}
-		//var_dump($body);
+		//var_dump($obj);
 		//exit;
+		
 		//returning http response status 302 returns to homepage//
 		header('Location: /jobs', true, 302);
 
