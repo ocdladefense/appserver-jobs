@@ -170,8 +170,8 @@ class JobsModule extends Module
 		$req = $this->getRequest();
 		$body = $req->getBody();
 		
-		var_dump($body);
-		exit;
+		//var_dump($_FILES);
+		//exit;
 		$force = new Salesforce($oauth_config);
 		//"Job__c is the name of the Job sObject I created in Salesforce//
 		if ($body->Id == "") {
