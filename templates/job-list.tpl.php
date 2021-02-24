@@ -2,6 +2,24 @@
 
 ?>
 
+
+<style type="text/css">
+
+.table-headers {
+	display: none;
+}
+
+li.table-cell {
+	list-style: none;
+}
+
+@media screen and (min-width: 800px) {
+	.table-headers {
+		display: table-row;
+	}
+}
+
+</style>
   
 
 			<div>
@@ -23,7 +41,7 @@
           
 
 			<div>
-				<p>Welcome to OCDLA's Job Board. Log-in to post a job.  Job postings are removed three days after the Closing Date. Postings that are marked as "Open Until Filled" are removed six weeks after the Posting Date.</p>
+				<p>Welcome to OCDLA's Job Board. Job postings are removed three days after the Closing Date. Postings that are marked as "Open Until Filled" are removed six weeks after the Posting Date.</p>
 		
 				<p>You may also email your posting description to <a href="mailto:tmay@ocdla.org">tmay@ocdla.org</a> and we will post the job. Include the job title, salary, location, and closing date.</p>
 			</div>
@@ -34,7 +52,7 @@
 	<tbody>
   
 
-		<ul class="table-row">
+		<ul class="table-row table-headers">
 		<?php if($isAdmin || $isMember): ?>
 			<li class="table-header">Actions</li>
 		<?php else: ?>
@@ -48,18 +66,7 @@
 			<li class="table-header">Attachments</li>
 		</ul>
 	
-		
-		<!--
-		<ul class="table-row"> 
-			<li class="table-cell cart-first">Investigator</li>
-			<li class="table-cell cart-middle">September 18, 2020</li>
-			<li class="table-cell cart-middle">Open until filled.</li>
-			<li class="table-cell cart-middle">Multnomah Defenders, Portland</li>
-			<li class="table-cell cart-middle">DOE</li>
-			<li class="table-cell cart-last"><a target="_blank" href="https://www.ocdla.org/employment/JobFiles/ACF463F.pdf">Job Description</a></li>
-		</ul>
-		-->
-			
+
 			
 		<?php if(!isset($jobs) || (isset($jobs) && count($jobs) < 1)): ?>
 			<ul class="table-row">
@@ -71,13 +78,13 @@
 			<?php foreach($jobs as $job):
 				$attachments = isset($job["Attachments"]) ? $job["Attachments"]["records"] : null;
 				$attachment = isset($attachments) && count($attachments) ? $attachments[0] : null;
-				$resource = isset($attachment) ? "/attachment/{$attachment['Id']}/{$attachment['Name']}" : null;
+				$resource = null != $job["Filename__c"] ? $job["Filename__c"] : null;//isset($attachment) ? "/attachment/{$attachment['Id']}/{$attachment['Name']}" : null;
 			?>
 				<ul class="table-row"> 
 					<?php if($isAdmin || $isMember): ?>
 						<li class="table-cell cart-first"><a href="/job/<?php print $job["Id"]; ?>/edit">Edit
-						</a><a href="/job/<?php print $job["Id"]; ?>/delete">Delete
-						</a></li> 
+						</a><!--<a href="/job/<?php print $job["Id"]; ?>/delete">Delete
+						</a>--></li> 
 					<?php else: ?>
 						<li class="table-cell cart-middle"></li>
 					<?php endif; ?>
@@ -94,7 +101,7 @@
 					<li class="table-cell cart-middle"><?php print $job["Salary__c"]; ?></li>
 					<li class="table-cell cart-last">
 						<?php if($resource): ?>
-							<a target="_blank" href="<?php print $resource; ?>">Job Description</a>
+							<a target="_blank" href="/content/modules/jobs/<?php print $resource; ?>">Job Description</a>
 						<?php endif; ?>
 					</li>
 				</ul>

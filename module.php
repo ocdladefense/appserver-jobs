@@ -32,49 +32,15 @@ class JobsModule extends Module
 		//$results = MysqlDatabase::query($builder->compile());
 		$force = new Salesforce($oauth_config);
 
-		$records = $force->createQueryFromSession("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c ORDER BY PostingDate__c DESC");
+		$records = $force->createQueryFromSession("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, Filename__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c WHERE IsActive__c = True ORDER BY PostingDate__c DESC");
 
-		//(SELECT Id, Title FROM Notes)
+
 		$attachments = $records["records"];
 
-		///////////////
-		/*TEST TRASH*/
-		//////////////
-		$admin = new StdClass();
-		$admin->Id = 1;
-		$admin->name = "";
-		$admin->password = "";
-		$admin->profileId = 1;
-
-		$member = new StdClass();
-		$member->Id = 2;
-		$member->name = "";
-		$member->password = "";
-		$member->profileId = 2;
-
-		//change profileId to determine if actions is accessible//
-		$user = new StdClass();
-		$user->Id = 3;
-		$user->name = "";
-		$user->password = "";
-		$user->profileId = 1;
-
-		function isAdminUser($user, $admin)
-		{
-			return $user->profileId === $admin->profileId;
-		}
-
-		function isMemberUser($user, $member)
-		{
-			return $user->profileId === $member->profileId;
-		}
-		///////////////////
-		/*END TEST TRASH*/
-		//////////////////
+	
 
 		return $tpl->render(array(
-			"jobs" => $records["records"], "isAdmin" => isAdminUser($user, $admin),
-			"isMember" => isMemberUser($user, $member)
+			"jobs" => $records["records"]
 		));
 	}
 
@@ -88,46 +54,6 @@ class JobsModule extends Module
 
 		$tpl = new Template("job-form");
 		$tpl->addPath(__DIR__ . "/templates");
-
-		///////////////
-		/*TEST TRASH*/
-		//GET USERS BY NAME AND PASSWORD GROUP BY ACCESS ~ eventually//
-		/////////////
-		$admin = new StdClass();
-		$admin->Id = 1;
-		$admin->name = "admin";
-		$admin->password = "pass";
-		$admin->profileId = 1;
-
-		$member = new StdClass();
-		$member->Id = 2;
-		$member->name = "member";
-		$member->password = "word";
-		$member->profileId = 2;
-
-		$user = new StdClass();
-		$user->Id = 3;
-		$user->name = "user";
-		$user->password = "none";
-		//change profileId to test edit access//
-		$user->profileId = 1;
-
-		function isAdmin($user, $admin)
-		{
-			return $user->profileId === $admin->profileId;
-		}
-
-		function isMember($user, $member)
-		{
-			return $user->profileId === $member->profileId;
-		}
-
-		if (!isAdmin($user, $admin) && !isMember($user, $member)) {
-			throw new exception("Authorization not granted");
-		}
-		///////////////////
-		/*END TEST TRASH*/
-		//////////////////
 
 
 		$force = new Salesforce($oauth_config);
@@ -169,9 +95,7 @@ class JobsModule extends Module
 		// Represents data submitted to endpoint, i.e., from an HTML form.
 		$req = $this->getRequest();
 		$body = $req->getBody();
-		
-		var_dump($body);
-		exit;
+
 		$force = new Salesforce($oauth_config);
 		//"Job__c is the name of the Job sObject I created in Salesforce//
 		if ($body->Id == "") {

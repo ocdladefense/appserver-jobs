@@ -8,11 +8,20 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 	.open-until-filled #closingDate {
 		display: none;
 	}
+	
+	
+	
+	input[type="submit"],
+	input[type="file"] {
+		display: block;
+		padding: 4px;
+	}
 </style>
 
 <form onsubmit="onSubmit();" class="<?php print $classNames; ?>" id="jobs-form" name="form-jobs" method="post" action="/jobs/create">
 
-	<h2>Enter the job!</h2>
+	<h2>OCDLA: post a job</h2>
+	<p>Job postings are made available to the public and OCDLA members.  Postings are removed on the close date you specify.  Postings open until filled are removed 6 weeks after the posted date.</p>
 
 	<label for="Name">Job Title</label><br />
 	<input type="text" name="Name" id="Name" value="<?php print $job["Name"]; ?>" placeholder="Enter your job title." />
@@ -53,7 +62,7 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 	</div>
 	<input type="hidden" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="" />
 
-	<label for="fileUpload">Upload Files</label>
+	<label for="fileUpload">Upload Files (optional)</label>
 	<input type="file" id="fileUpload" name="fileUpload" >
 
 	<input type="submit" value="Save" />
