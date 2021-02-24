@@ -24,6 +24,7 @@ class JobsModule extends Module
 		$tpl = new ListTemplate("job-list");
 		$tpl->addPath(__DIR__ . "/templates");
 
+
 		$force = $this->loadForceApi();
 		
 		//query for job records//
@@ -32,34 +33,8 @@ class JobsModule extends Module
 		//creates an array containing each job record//
 		$records = $results["records"];
 		
-		//instantiates an empty array to put the $recordIds in//
-		$jobs = array(); 
-		
-		//puts records Id's into $recordsIds array//
-		for($i = 0; $i < count($records); $i++) {
-			$jobId = $records[$i]["Id"];
-			$jobs[$jobId] = $records[$i];
-		}
-		//uses implode to put the id's in a string the seperator goes first//
-		$Ids = implode("', '", array_keys($jobs)); 
-
-		//saves-casts the $ids variable as a string in single quotes// 
-		$Ids = "'$Ids'";
-
-		//queries for documents//
-		$docResults = $force->query("SELECT Id, LinkedEntityId, LinkedEntity.Name, ContentDocumentId, ContentDocument.Title, ContentDocument.OwnerId, ContentDocument.LatestPublishedVersionId FROM ContentDocumentLink WHERE LinkedEntityId IN ($Ids)");
-
-		//creates an array holding each document//
-		$documents = $docResults["records"];
-
-		foreach($documents as $document) {
-			$jobId = $document["LinkedEntityId"]; //puts each document linked idenity id into a single variable
-			$job = &$jobs[$jobId]; //puts a job record and attached document by reference using $jobId as a key
-			$job["Document"] = $document; //creates the document key and adds a document(if exists) to a job in the jobs array
-		}
-		
 		return $tpl->render(array(
-			"jobs" => $jobs
+			"jobs" => records
 		));
 	}
 
@@ -73,7 +48,6 @@ class JobsModule extends Module
 		$tpl->addPath(__DIR__ . "/templates");
 
 
-		$force = $this->loadForceApi();
 
 		$Id = "'$Id'";
 
@@ -110,7 +84,7 @@ class JobsModule extends Module
 		// Represents data submitted to endpoint, i.e., from an HTML form.
 		$req = $this->getRequest();
 		$body = $req->getBody();
-		
+
 		//"Job__c is the name of the Job sObject I created in Salesforce//
 		if ($body->Id == "") {
 			unset($body->Id);
