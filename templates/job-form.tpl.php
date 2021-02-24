@@ -18,7 +18,7 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 	}
 </style>
 
-<form onsubmit="onSubmit();" class="<?php print $classNames; ?>" id="jobs-form" name="form-jobs" method="post" action="/jobs/create">
+<form enctype="multipart/form-data" onsubmit="onSubmit();" class="<?php print $classNames; ?>" id="jobs-form" name="form-jobs" method="post" action="/jobs/create">
 
 	<h2>OCDLA: post a job</h2>
 	<p>Job postings are made available to the public and OCDLA members.  Postings are removed on the close date you specify.  Postings open until filled are removed 6 weeks after the posted date.</p>
@@ -50,7 +50,6 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 	</div>
 
 
-
 	<div onclick="handleCheck()">
 		<label for="OpenUntilFilled__c">Open Until Filled?</label>&nbsp&nbsp
 		<?php if ($job["OpenUntilFilled__c"] == true) : ?>
@@ -62,8 +61,11 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 	</div>
 	<input type="hidden" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="" />
 
-	<label for="fileUpload">Upload Files (optional)</label>
-	<input type="file" id="fileUpload" name="fileUpload" >
+
+	<!--changed attachment to an array type-->
+	<label for="Attachments__c[]">Upload Files</label>
+	<input type="file" id="Attachments__c[]" name="Attachments__c[]" >
+	<br /><br />
 
 	<input type="submit" value="Save" />
 </form>

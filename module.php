@@ -21,26 +21,20 @@ class JobsModule extends Module
 
 	public function home()
 	{
-		global $oauth_config;
-
-		// Prepare data for the template.
-		// $builder = QueryBuilder::fromJson($json);
-
 		$tpl = new ListTemplate("job-list");
 		$tpl->addPath(__DIR__ . "/templates");
 
-		//$results = MysqlDatabase::query($builder->compile());
-		$force = new Salesforce($oauth_config);
 
-		$records = $force->createQueryFromSession("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, Filename__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c WHERE IsActive__c = True ORDER BY PostingDate__c DESC");
+		$force = $this->loadForceApi();
+		
+		//query for job records//
+		$results = $force->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c FROM Job__c ORDER BY PostingDate__c DESC");
 
-
-		$attachments = $records["records"];
-
-	
-
+		//creates an array containing each job record//
+		$records = $results["records"];
+		
 		return $tpl->render(array(
-			"jobs" => $records["records"]
+			"jobs" => records
 		));
 	}
 
@@ -50,19 +44,18 @@ class JobsModule extends Module
 	 */
 	public function edit($Id = null)
 	{
-		global $oauth_config;
-
 		$tpl = new Template("job-form");
 		$tpl->addPath(__DIR__ . "/templates");
 
 
-		$force = new Salesforce($oauth_config);
+
+		$Id = "'$Id'";
 
 		//queries the datbase for selected record by Id//
-		$result = $force->createQueryFromSession("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c WHERE Id = '" . $Id . "'");
+		$result = $force->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c WHERE Id = $Id");
+		
 		$record = $result["records"][0];
-		//var_dump($record);
-		//exit;
+
 
 		//render job selected to edit//
 		return $tpl->render(array("job" => $record));
@@ -71,13 +64,9 @@ class JobsModule extends Module
 
 	public function deletePosting($Id)
 	{
-		global $oauth_config;
+		$force = $this->loadForceApi();
 		// Represents data submitted to endpoint, i.e., from an HTML form.
-
-		$req = $this->getRequest();
-
-		$force = new Salesforce($oauth_config);
-
+		
 		//"Job__c is the name of the object I created in Salesforce//
 		$obj = $force->deleteRecordFromSession("Job__c", $Id);
 
@@ -90,22 +79,19 @@ class JobsModule extends Module
 
 	public function createPosting()
 	{
-		global $oauth_config;
+		$force = $this->loadForceApi();
 
 		// Represents data submitted to endpoint, i.e., from an HTML form.
 		$req = $this->getRequest();
 		$body = $req->getBody();
 
-		$force = new Salesforce($oauth_config);
 		//"Job__c is the name of the Job sObject I created in Salesforce//
 		if ($body->Id == "") {
 			unset($body->Id);
-			$obj = $force->createRecordsFromSession("Job__c", $body);
+			$obj = $force->createRecords("Job__c", $body);
 		} else {
 			$obj = $force->updateRecordFromSession("Job__c", $body);
 		}
-		//var_dump($obj);
-		//exit;
 		
 		//returning http response status 302 returns to homepage//
 		header('Location: /jobs', true, 302);
@@ -114,24 +100,24 @@ class JobsModule extends Module
 	}
 
 
-	public function getAttachment($id, $filename = null)
+	public function getAttachment($ContentVersionId, $filename = null)
 	{
-		global $oauth_config;
-
-		// $url = "/services/data/v49.0/sobjects/Attachment/00P5b00000rk39CEAQ";
-		$force = new Salesforce($oauth_config);
-
-		$resp = $force->getAttachment($id);
-
+		$force = $this->loadForceApi();
+		
+		$resp = $force->getAttachment($ContentVersionId);
+		
 
 		$file = new File($filename);
 		$file->setContent($resp->getBody());
 		$file->setType($resp->getHeader("Content-Type"));
 
+		
 		// print get_class($file);
 		// exit;
 
+
 		return $file;
+
 		// print $resp->getHeader("Content-Type");
 		// exit;
 
@@ -141,7 +127,9 @@ class JobsModule extends Module
 
 		// print $resp->getBody();
 		// exit;
+
 		return $resp;
+		
 	}
 
 

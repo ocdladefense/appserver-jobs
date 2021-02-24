@@ -52,20 +52,24 @@ li.table-cell {
 	<tbody>
   
 
+
 		<ul class="table-row table-headers">
 		<?php if($isAdmin || $isMember): ?>
 			<li class="table-header">Actions</li>
 		<?php else: ?>
+
+		<ul class="table-row">
+			<!--<li class="table-header">Actions</li>-->
+
 			<li class="table-header"></li>
-		<?php endif; ?>
 			<li class="table-header">Title</li>
 			<li class="table-header">Posted</li>
 			<li class="table-header">Closes</li>
 			<li class="table-header">Location</li>
 			<li class="table-header">Salary</li>
-			<li class="table-header">Attachments</li>
+			<li class="table-header">Documents</li>
 		</ul>
-	
+	<?php endif; ?>
 
 			
 		<?php if(!isset($jobs) || (isset($jobs) && count($jobs) < 1)): ?>
@@ -76,9 +80,15 @@ li.table-cell {
 		<?php else: ?>
 		
 			<?php foreach($jobs as $job):
+
 				$attachments = isset($job["Attachments"]) ? $job["Attachments"]["records"] : null;
 				$attachment = isset($attachments) && count($attachments) ? $attachments[0] : null;
 				$resource = null != $job["Filename__c"] ? $job["Filename__c"] : null;//isset($attachment) ? "/attachment/{$attachment['Id']}/{$attachment['Name']}" : null;
+/*
+				$attachments = isset($job["Document"]) ? $job["Document"] : null;
+				$attachment = isset($attachments) && count($attachments) ? $attachments : null;
+				$resource = isset($attachment) ? "/attachment/{$attachment['ContentDocument']['LatestPublishedVersionId']}/{$attachment['ContentDocument']['Title']}" : null;
+*/
 			?>
 				<ul class="table-row"> 
 					<?php if($isAdmin || $isMember): ?>
