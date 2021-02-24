@@ -21,60 +21,45 @@ class JobsModule extends Module
 
 	public function home()
 	{
-		global $oauth_config;
-
-		// Prepare data for the template.
-		// $builder = QueryBuilder::fromJson($json);
-
 		$tpl = new ListTemplate("job-list");
 		$tpl->addPath(__DIR__ . "/templates");
 
-		//$results = MysqlDatabase::query($builder->compile());
-		$force = new Salesforce($oauth_config);
+		$force = $this->loadForceApi();
+		
+		//query for job records//
+		$results = $force->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c FROM Job__c ORDER BY PostingDate__c DESC");
 
-		$records = $force->createQueryFromSession("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c ORDER BY PostingDate__c DESC");
-
-		//(SELECT Id, Title FROM Notes)
-		$attachments = $records["records"];
-
-		///////////////
-		/*TEST TRASH*/
-		//////////////
-		$admin = new StdClass();
-		$admin->Id = 1;
-		$admin->name = "";
-		$admin->password = "";
-		$admin->profileId = 1;
-
-		$member = new StdClass();
-		$member->Id = 2;
-		$member->name = "";
-		$member->password = "";
-		$member->profileId = 2;
-
-		//change profileId to determine if actions is accessible//
-		$user = new StdClass();
-		$user->Id = 3;
-		$user->name = "";
-		$user->password = "";
-		$user->profileId = 1;
-
-		function isAdminUser($user, $admin)
-		{
-			return $user->profileId === $admin->profileId;
+		//creates an array containing each job record//
+		$records = $results["records"];
+		
+		//instantiates an empty array to put the $recordIds in//
+		$jobs = array(); 
+		
+		//puts records Id's into $recordsIds array//
+		for($i = 0; $i < count($records); $i++) {
+			$jobId = $records[$i]["Id"];
+			$jobs[$jobId] = $records[$i];
 		}
+		//uses implode to put the id's in a string the seperator goes first//
+		$Ids = implode("', '", array_keys($jobs)); 
 
-		function isMemberUser($user, $member)
-		{
-			return $user->profileId === $member->profileId;
+		//saves-casts the $ids variable as a string in single quotes// 
+		$Ids = "'$Ids'";
+
+		//queries for documents//
+		$docResults = $force->query("SELECT Id, LinkedEntityId, LinkedEntity.Name, ContentDocumentId, ContentDocument.Title, ContentDocument.OwnerId, ContentDocument.LatestPublishedVersionId FROM ContentDocumentLink WHERE LinkedEntityId IN ($Ids)");
+
+		//creates an array holding each document//
+		$documents = $docResults["records"];
+
+		foreach($documents as $document) {
+			$jobId = $document["LinkedEntityId"]; //puts each document linked idenity id into a single variable
+			$job = &$jobs[$jobId]; //puts a job record and attached document by reference using $jobId as a key
+			$job["Document"] = $document; //creates the document key and adds a document(if exists) to a job in the jobs array
 		}
-		///////////////////
-		/*END TEST TRASH*/
-		//////////////////
-
+		
 		return $tpl->render(array(
-			"jobs" => $records["records"], "isAdmin" => isAdminUser($user, $admin),
-			"isMember" => isMemberUser($user, $member)
+			"jobs" => $jobs
 		));
 	}
 
@@ -84,59 +69,19 @@ class JobsModule extends Module
 	 */
 	public function edit($Id = null)
 	{
-		global $oauth_config;
-
 		$tpl = new Template("job-form");
 		$tpl->addPath(__DIR__ . "/templates");
 
-		///////////////
-		/*TEST TRASH*/
-		//GET USERS BY NAME AND PASSWORD GROUP BY ACCESS ~ eventually//
-		/////////////
-		$admin = new StdClass();
-		$admin->Id = 1;
-		$admin->name = "admin";
-		$admin->password = "pass";
-		$admin->profileId = 1;
 
-		$member = new StdClass();
-		$member->Id = 2;
-		$member->name = "member";
-		$member->password = "word";
-		$member->profileId = 2;
+		$force = $this->loadForceApi();
 
-		$user = new StdClass();
-		$user->Id = 3;
-		$user->name = "user";
-		$user->password = "none";
-		//change profileId to test edit access//
-		$user->profileId = 1;
-
-		function isAdmin($user, $admin)
-		{
-			return $user->profileId === $admin->profileId;
-		}
-
-		function isMember($user, $member)
-		{
-			return $user->profileId === $member->profileId;
-		}
-
-		if (!isAdmin($user, $admin) && !isMember($user, $member)) {
-			throw new exception("Authorization not granted");
-		}
-		///////////////////
-		/*END TEST TRASH*/
-		//////////////////
-
-
-		$force = new Salesforce($oauth_config);
+		$Id = "'$Id'";
 
 		//queries the datbase for selected record by Id//
-		$result = $force->createQueryFromSession("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c WHERE Id = '" . $Id . "'");
+		$result = $force->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c WHERE Id = $Id");
+		
 		$record = $result["records"][0];
-		//var_dump($record);
-		//exit;
+
 
 		//render job selected to edit//
 		return $tpl->render(array("job" => $record));
@@ -145,13 +90,9 @@ class JobsModule extends Module
 
 	public function deletePosting($Id)
 	{
-		global $oauth_config;
+		$force = $this->loadForceApi();
 		// Represents data submitted to endpoint, i.e., from an HTML form.
-
-		$req = $this->getRequest();
-
-		$force = new Salesforce($oauth_config);
-
+		
 		//"Job__c is the name of the object I created in Salesforce//
 		$obj = $force->deleteRecordFromSession("Job__c", $Id);
 
@@ -164,24 +105,19 @@ class JobsModule extends Module
 
 	public function createPosting()
 	{
-		global $oauth_config;
+		$force = $this->loadForceApi();
 
 		// Represents data submitted to endpoint, i.e., from an HTML form.
 		$req = $this->getRequest();
 		$body = $req->getBody();
 		
-		var_dump($body);
-		exit;
-		$force = new Salesforce($oauth_config);
 		//"Job__c is the name of the Job sObject I created in Salesforce//
 		if ($body->Id == "") {
 			unset($body->Id);
-			$obj = $force->createRecordsFromSession("Job__c", $body);
+			$obj = $force->createRecords("Job__c", $body);
 		} else {
 			$obj = $force->updateRecordFromSession("Job__c", $body);
 		}
-		//var_dump($obj);
-		//exit;
 		
 		//returning http response status 302 returns to homepage//
 		header('Location: /jobs', true, 302);
@@ -190,24 +126,24 @@ class JobsModule extends Module
 	}
 
 
-	public function getAttachment($id, $filename = null)
+	public function getAttachment($ContentVersionId, $filename = null)
 	{
-		global $oauth_config;
-
-		// $url = "/services/data/v49.0/sobjects/Attachment/00P5b00000rk39CEAQ";
-		$force = new Salesforce($oauth_config);
-
-		$resp = $force->getAttachment($id);
-
+		$force = $this->loadForceApi();
+		
+		$resp = $force->getAttachment($ContentVersionId);
+		
 
 		$file = new File($filename);
 		$file->setContent($resp->getBody());
 		$file->setType($resp->getHeader("Content-Type"));
 
+		
 		// print get_class($file);
 		// exit;
 
+
 		return $file;
+
 		// print $resp->getHeader("Content-Type");
 		// exit;
 
@@ -217,7 +153,9 @@ class JobsModule extends Module
 
 		// print $resp->getBody();
 		// exit;
+
 		return $resp;
+		
 	}
 
 
