@@ -52,7 +52,7 @@ class JobsModule extends Module
 		$Id = "'$Id'";
 
 		//queries the datbase for selected record by Id//
-		$result = $force->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c WHERE Id = $Id");
+		$result = $force->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c FROM Job__c WHERE Id = $Id");
 		
 		$record = $result["records"][0];
 
@@ -88,7 +88,10 @@ class JobsModule extends Module
 		//"Job__c is the name of the Job sObject I created in Salesforce//
 		if ($body->Id == "") {
 			unset($body->Id);
-			$obj = $force->createRecords("Job__c", $body);
+			$obj = $force->insert("Job__c", $body);
+			//ini_set('display_errors', 1);
+			//var_dump($obj);
+			//exit;
 		} else {
 			$obj = $force->updateRecordFromSession("Job__c", $body);
 		}
