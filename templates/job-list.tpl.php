@@ -81,14 +81,14 @@ li.table-cell {
 		
 			<?php foreach($jobs as $job):
 
-				$attachments = isset($job["Attachments"]) ? $job["Attachments"]["records"] : null;
+				/*$attachments = isset($job["Attachments"]) ? $job["Attachments"]["records"] : null;
 				$attachment = isset($attachments) && count($attachments) ? $attachments[0] : null;
-				$resource = null != $job["Filename__c"] ? $job["Filename__c"] : null;//isset($attachment) ? "/attachment/{$attachment['Id']}/{$attachment['Name']}" : null;
-/*
+				$resource = null != $job["Filename__c"] ? $job["Filename__c"] : null;//isset($attachment) ? "/attachment/{$attachment['Id']}/{$attachment['Name']}" : null;*/
+
 				$attachments = isset($job["Document"]) ? $job["Document"] : null;
 				$attachment = isset($attachments) && count($attachments) ? $attachments : null;
 				$resource = isset($attachment) ? "/attachment/{$attachment['ContentDocument']['LatestPublishedVersionId']}/{$attachment['ContentDocument']['Title']}" : null;
-*/
+
 			?>
 				<ul class="table-row"> 
 					<?php if($isAdmin || $isMember): ?>
@@ -111,7 +111,7 @@ li.table-cell {
 					<li class="table-cell cart-middle"><?php print $job["Salary__c"]; ?></li>
 					<li class="table-cell cart-last">
 						<?php if($resource): ?>
-							<a target="_blank" href="/content/modules/jobs/<?php print $resource; ?>">Job Description</a>
+							<a target="_blank" href="<?php print $resource; ?>">Job Description</a>
 						<?php endif; ?>
 					</li>
 				</ul>
