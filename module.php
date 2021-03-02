@@ -47,7 +47,7 @@ class JobsModule extends Module
 		$Ids = "'$Ids'";
 
 		//queries for documents//
-		$docResults = $force->query("SELECT Id, LinkedEntityId, LinkedEntity.Name, ContentDocumentId, ContentDocument.Title, ContentDocument.OwnerId, ContentDocument.LatestPublishedVersionId FROM ContentDocumentLink WHERE LinkedEntityId IN ($Ids)");
+		$docResults = $force->query("SELECT Id, LinkedEntityId, LinkedEntity.Name, ContentDocumentId, ContentDocument.Title, ContentDocument.OwnerId, ContentDocument.LatestPublishedVersionId, ContentDocument.FileExtension, ContentDocument.FileType FROM ContentDocumentLink WHERE LinkedEntityId IN ($Ids)");
 
 		//creates an array holding each document//
 		$documents = $docResults["records"];

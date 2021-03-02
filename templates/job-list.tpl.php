@@ -87,7 +87,7 @@ li.table-cell {
 
 				$attachments = isset($job["Document"]) ? $job["Document"] : null;
 				$attachment = isset($attachments) && count($attachments) ? $attachments : null;
-				$resource = isset($attachment) ? "/attachment/{$attachment['ContentDocument']['LatestPublishedVersionId']}/{$attachment['ContentDocument']['Title']}" : null;
+				$resource = isset($attachment) ? "/attachment/{$attachment['ContentDocument']['LatestPublishedVersionId']}/{$attachment['ContentDocument']['Title']}.{$attachment['ContentDocument']['FileExtension']}" : null;
 
 			?>
 				<ul class="table-row"> 
