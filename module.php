@@ -94,7 +94,7 @@ class JobsModule extends Module
 		// Represents data submitted to endpoint, i.e., from an HTML form.
 		
 		//"Job__c is the name of the object I created in Salesforce//
-		$obj = $force->deleteRecordFromSession("Job__c", $Id);
+		$obj = $force->delete("Job__c", $Id);
 
 		//returning http response status 302 returns to homepage 
 		header('Location: /jobs', true, 302);
