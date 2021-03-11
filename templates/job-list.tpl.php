@@ -102,7 +102,7 @@ li.table-cell {
 					<li class="table-cell cart-middle"><?php print $job["PostingDate__c"]; ?></li>
 					<li class="table-cell cart-middle">
 						<?php if($job["OpenUntilFilled__c"]): ?>
-							Open until filled.
+							Open until filled
 						<?php else: ?>
 							<?php print $job["ClosingDate__c"]; ?>
 						<?php endif; ?>

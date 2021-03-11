@@ -110,6 +110,7 @@ class JobsModule extends Module
 		// Represents data submitted to endpoint, i.e., from an HTML form.
 		$req = $this->getRequest();
 		$body = $req->getBody();
+		$files = $req->getFiles();
 		
 		//"Job__c is the name of the Job sObject I created in Salesforce//
 		if ($body->Id == "") {
@@ -157,7 +158,6 @@ class JobsModule extends Module
 		return $resp;
 		
 	}
-
 
 	public function showSubjects()
 	{
