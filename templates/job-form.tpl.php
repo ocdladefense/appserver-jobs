@@ -59,7 +59,11 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 		<?php endif; ?>
 		<br /><br />
 	</div>
-	<input type="hidden" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="" />
+	<?php if ($job["OpenUntilFilled__c"] == true) : ?>
+		<input type="hidden" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="true" />
+	<?php else : ?>
+		<input type="hidden" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="false" />
+	<?php endif; ?>
 
 
 	<!--changed attachment to an array type-->

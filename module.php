@@ -25,10 +25,12 @@ class JobsModule extends Module
 		$tpl->addPath(__DIR__ . "/templates");
 
 		$force = $this->loadForceApi();
-		
+		//var_dump($force);
+		//exit;
 		//query for job records//
 		$results = $force->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c FROM Job__c ORDER BY PostingDate__c DESC");
-
+		//var_dump($results);
+		//exit;
 		//creates an array containing each job record//
 		$records = $results["records"];
 		
@@ -111,13 +113,14 @@ class JobsModule extends Module
 		$req = $this->getRequest();
 		$body = $req->getBody();
 		$files = $req->getFiles();
-		
+		//var_dump($body);
+		//exit;
 		//"Job__c is the name of the Job sObject I created in Salesforce//
 		if ($body->Id == "") {
 			unset($body->Id);
 			$obj = $force->insert("Job__c", $body);
 		} else {
-			$obj = $force->patch("Job__c", $body);
+			$obj = $force->update("Job__c", $body);
 		}
 		
 		//returning http response status 302 returns to homepage//

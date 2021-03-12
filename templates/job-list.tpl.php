@@ -91,10 +91,10 @@ li.table-cell {
 
 			?>
 				<ul class="table-row"> 
-					<?php if($isAdmin || $isMember): ?>
+					<?php if($isAdmin || $isMember || true): ?>
 						<li class="table-cell cart-first"><a href="/job/<?php print $job["Id"]; ?>/edit">Edit
-						</a><!--<a href="/job/<?php print $job["Id"]; ?>/delete">Delete
-						</a>--></li> 
+						</a><a href="/job/<?php print $job["Id"]; ?>/delete">Delete
+						</a></li> 
 					<?php else: ?>
 						<li class="table-cell cart-middle"></li>
 					<?php endif; ?>
