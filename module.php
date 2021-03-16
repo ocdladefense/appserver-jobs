@@ -13,17 +13,16 @@ class JobsModule extends Module
 	//exit;
 	/*END TEST TRASH*/
 
-	public function __construct()
-	{
+	public function __construct() {
+
 		parent::__construct();
 	}
 
 
-	public function home()
-	{
+	public function home() {
+
 		$tpl = new ListTemplate("job-list");
 		$tpl->addPath(__DIR__ . "/templates");
-
 
 		$force = $this->loadForceApi();
 		
@@ -34,7 +33,7 @@ class JobsModule extends Module
 		$records = $results["records"];
 		
 		return $tpl->render(array(
-			"jobs" => records
+			"jobs" => $records
 		));
 	}
 
@@ -42,8 +41,8 @@ class JobsModule extends Module
 	/**
 	 * Return an HTML form for creating a new Job posting.
 	 */
-	public function edit($Id = null)
-	{
+	public function edit($Id = null) {
+
 		$tpl = new Template("job-form");
 		$tpl->addPath(__DIR__ . "/templates");
 
@@ -62,8 +61,8 @@ class JobsModule extends Module
 	}
 
 
-	public function deletePosting($Id)
-	{
+	public function deletePosting($Id) {
+
 		$force = $this->loadForceApi();
 		// Represents data submitted to endpoint, i.e., from an HTML form.
 		
@@ -77,8 +76,8 @@ class JobsModule extends Module
 	}
 
 
-	public function createPosting()
-	{
+	public function createPosting() {
+
 		$force = $this->loadForceApi();
 
 		// Represents data submitted to endpoint, i.e., from an HTML form.
@@ -103,8 +102,8 @@ class JobsModule extends Module
 	}
 
 
-	public function getAttachment($ContentVersionId, $filename = null)
-	{
+	public function getAttachment($ContentVersionId, $filename = null) {
+
 		$force = $this->loadForceApi();
 		
 		$resp = $force->getAttachment($ContentVersionId);
@@ -136,8 +135,7 @@ class JobsModule extends Module
 	}
 
 
-	public function showSubjects()
-	{
+	public function showSubjects() {
 
 		$results = MysqlDatabase::query("SELECT * FROM LibraryCategories");
 
@@ -156,9 +154,7 @@ class JobsModule extends Module
 	}
 
 
-	public function showDocuments($catId)
-	{
-
+	public function showDocuments($catId) {
 
 		$results = MysqlDatabase::query("SELECT * FROM Documents WHERE LibraryCategoryID = {$catId}");
 

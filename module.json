@@ -4,8 +4,7 @@
 	"description": "View and post OCDLA jobs.",
 	"files": [
 		"Job.php",
-		"ListTemplate.php",
-		"SalesforceAttachment.php"
+		"ListTemplate.php"
 	],
 	"routes": {
 		"attachment/%id/%name": {
