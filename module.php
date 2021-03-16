@@ -1,6 +1,7 @@
 <?php
 
 use \File\File as File;
+use \Salesforce\Attachment;
 
 class JobsModule extends Module
 {
@@ -19,13 +20,23 @@ class JobsModule extends Module
 		$force = $this->loadForceApi();
 		
 		//query for job records//
-		$results = $force->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c FROM Job__c ORDER BY PostingDate__c DESC");
+		$jobResults = $force->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c FROM Job__c ORDER BY PostingDate__c DESC");
 
 		//creates an array containing each job record//
-		$records = $results["records"];
+		$jobRecords = $jobResults["records"];
+
+		$jobs = array();
+		foreach($jobRecords as $record){
+
+			$recordId = $record["Id"];
+			$attResults = $force->query("SELECT Id, Name FROM Attachment Where ParentId = '{$recordId}'");
+			$record["attachments"] = $attResults["records"];
+
+			$jobs[] = $record;
+		}
 		
 		return $tpl->render(array(
-			"jobs" => $records
+			"jobs" => $jobs
 		));
 	}
 
@@ -40,20 +51,24 @@ class JobsModule extends Module
 	}
 
 	public function createPosting() {
+		
+		$req = $this->getRequest();
 
-		var_dump($this->getRequest());exit;
+		$jobId = $this->upsertJob();
 
-		$jobId = $this->insertJob($body);
+		if($req->getFiles()->size() > 0){
+
+			$attachmentId = $this->insertAttachment($jobId);
+		}
 
 		header('Location: /jobs', true, 302);
 	}
 
-	public function insertJob() {
+	public function upsertJob() {
 
 		$force = $this->loadForceApi();
 
 		$req = $this->getRequest();
-		$req->setFormRequest(true);
 		$body = $req->getBody();
 
 		if($body->Id == "") {
@@ -69,9 +84,19 @@ class JobsModule extends Module
 		return $resp->id;
 	}
 
-	public function addAttachments(){
+	public function insertAttachment($jobId){
 
-		print "hello from addAttachments"; exit;
+		$req = $this->getRequest();
+		$file = $req->getFiles()->getFirst();
+
+		$file = Attachment::fromFile($file);
+		$file->setParentId($jobId);
+
+		$sfRequest = $this->loadForceApi();
+
+		$resp = json_decode($sfRequest->uploadFile($file));
+
+		return $resp->id;
 	}
 
 
