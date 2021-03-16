@@ -1,5 +1,5 @@
 <?php
-
+phpinfo();
 // use Salesforce\Database as Database;
 use \File\File as File;
 
@@ -24,17 +24,44 @@ class JobsModule extends Module
 		$tpl = new ListTemplate("job-list");
 		$tpl->addPath(__DIR__ . "/templates");
 
-
 		$force = $this->loadForceApi();
-		
+		//var_dump($force);
+		//exit;
 		//query for job records//
 		$results = $force->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c FROM Job__c ORDER BY PostingDate__c DESC");
-
+		//var_dump($results);
+		//exit;
 		//creates an array containing each job record//
 		$records = $results["records"];
 		
+		//instantiates an empty array to put the $recordIds in//
+		$jobs = array(); 
+		
+		//puts records Id's into $recordsIds array//
+		for($i = 0; $i < count($records); $i++) {
+			$jobId = $records[$i]["Id"];
+			$jobs[$jobId] = $records[$i];
+		}
+		//uses implode to put the id's in a string the seperator goes first//
+		$Ids = implode("', '", array_keys($jobs)); 
+
+		//saves-casts the $ids variable as a string in single quotes// 
+		$Ids = "'$Ids'";
+
+		//queries for documents//
+		$docResults = $force->query("SELECT Id, LinkedEntityId, LinkedEntity.Name, ContentDocumentId, ContentDocument.Title, ContentDocument.OwnerId, ContentDocument.LatestPublishedVersionId, ContentDocument.FileExtension, ContentDocument.FileType FROM ContentDocumentLink WHERE LinkedEntityId IN ($Ids)");
+
+		//creates an array holding each document//
+		$documents = $docResults["records"];
+
+		foreach($documents as $document) {
+			$jobId = $document["LinkedEntityId"]; //puts each document linked idenity id into a single variable
+			$job = &$jobs[$jobId]; //puts a job record and attached document by reference using $jobId as a key
+			$job["Document"] = $document; //creates the document key and adds a document(if exists) to a job in the jobs array
+		}
+		
 		return $tpl->render(array(
-			"jobs" => records
+			"jobs" => $jobs
 		));
 	}
 
@@ -48,6 +75,7 @@ class JobsModule extends Module
 		$tpl->addPath(__DIR__ . "/templates");
 
 
+		$force = $this->loadForceApi();
 
 		$Id = "'$Id'";
 
@@ -68,7 +96,7 @@ class JobsModule extends Module
 		// Represents data submitted to endpoint, i.e., from an HTML form.
 		
 		//"Job__c is the name of the object I created in Salesforce//
-		$obj = $force->deleteRecordFromSession("Job__c", $Id);
+		$obj = $force->delete("Job__c", $Id);
 
 		//returning http response status 302 returns to homepage 
 		header('Location: /jobs', true, 302);
@@ -84,16 +112,15 @@ class JobsModule extends Module
 		// Represents data submitted to endpoint, i.e., from an HTML form.
 		$req = $this->getRequest();
 		$body = $req->getBody();
-
+		$files = $req->getFiles();
+		//var_dump($body);
+		//exit;
 		//"Job__c is the name of the Job sObject I created in Salesforce//
 		if ($body->Id == "") {
 			unset($body->Id);
 			$obj = $force->insert("Job__c", $body);
-			//ini_set('display_errors', 1);
-			//var_dump($obj);
-			//exit;
 		} else {
-			$obj = $force->updateRecordFromSession("Job__c", $body);
+			$obj = $force->update("Job__c", $body);
 		}
 		
 		//returning http response status 302 returns to homepage//
@@ -134,7 +161,6 @@ class JobsModule extends Module
 		return $resp;
 		
 	}
-
 
 	public function showSubjects()
 	{
