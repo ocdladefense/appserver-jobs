@@ -1,17 +1,9 @@
 <?php
 
-// use Salesforce\Database as Database;
 use \File\File as File;
 
 class JobsModule extends Module
 {
-	/*TEST TRASH to help debug*/
-	//var_dump($obj);
-	//ini_set('display_errors', 1);
-	//echo "Hello World!";
-	//phpinfo();
-	//exit;
-	/*END TEST TRASH*/
 
 	public function __construct() {
 
@@ -38,26 +30,48 @@ class JobsModule extends Module
 	}
 
 
-	/**
-	 * Return an HTML form for creating a new Job posting.
-	 */
-	public function edit($Id = null) {
+	// Return an HTML form for creating a new Job posting.
+	public function postingForm() {
 
 		$tpl = new Template("job-form");
 		$tpl->addPath(__DIR__ . "/templates");
 
+		return $tpl->render();
+	}
 
+	public function createPosting() {
 
-		$Id = "'$Id'";
+		var_dump($this->getRequest());exit;
 
-		//queries the datbase for selected record by Id//
-		$result = $force->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c FROM Job__c WHERE Id = $Id");
-		
-		$record = $result["records"][0];
+		$jobId = $this->insertJob($body);
 
+		header('Location: /jobs', true, 302);
+	}
 
-		//render job selected to edit//
-		return $tpl->render(array("job" => $record));
+	public function insertJob() {
+
+		$force = $this->loadForceApi();
+
+		$req = $this->getRequest();
+		$req->setFormRequest(true);
+		$body = $req->getBody();
+
+		if($body->Id == "") {
+			
+			unset($body->Id);
+			$resp = json_decode($force->insert("Job__c", $body));
+
+		} else {
+
+			$resp = json_decode($force->updateRecordFromSession("Job__c", $body));
+		}
+
+		return $resp->id;
+	}
+
+	public function addAttachments(){
+
+		print "hello from addAttachments"; exit;
 	}
 
 
@@ -76,30 +90,7 @@ class JobsModule extends Module
 	}
 
 
-	public function createPosting() {
 
-		$force = $this->loadForceApi();
-
-		// Represents data submitted to endpoint, i.e., from an HTML form.
-		$req = $this->getRequest();
-		$body = $req->getBody();
-
-		//"Job__c is the name of the Job sObject I created in Salesforce//
-		if ($body->Id == "") {
-			unset($body->Id);
-			$obj = $force->insert("Job__c", $body);
-			//ini_set('display_errors', 1);
-			//var_dump($obj);
-			//exit;
-		} else {
-			$obj = $force->updateRecordFromSession("Job__c", $body);
-		}
-		
-		//returning http response status 302 returns to homepage//
-		header('Location: /jobs', true, 302);
-
-		return $obj["records"][0]["Id"];
-	}
 
 
 	public function getAttachment($ContentVersionId, $filename = null) {
@@ -167,4 +158,9 @@ class JobsModule extends Module
 							</ul>";
 		})) . "</div>";
 	}
+
+// 	public function login(){
+
+// 		user_require_auth();
+// 	}
 }
