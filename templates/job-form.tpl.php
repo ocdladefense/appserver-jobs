@@ -20,8 +20,12 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 
 <form enctype="multipart/form-data" onsubmit="onSubmit();" class="<?php print $classNames; ?>" id="jobs-form" name="form-jobs" method="post" action="/jobs/create">
 
-	<h2>OCDLA: post a job</h2>
+	<?php if(!$isEdit): ?> <h2>OCDLA: Post a job</h2> <?php else: ?> <h2>OCDLA: Update a job posting</h2> <?php endif ?>
 	<p>Job postings are made available to the public and OCDLA members.  Postings are removed on the close date you specify.  Postings open until filled are removed 6 weeks after the posted date.</p>
+
+	<?php if($isEdit): ?>
+	<strong>Job Id: <?php print $job["Id"]; ?></strong><br /><br />
+	<?php endif ?>
 
 	<label for="Name">Job Title</label><br />
 	<input type="text" name="Name" id="Name" value="<?php print $job["Name"]; ?>" placeholder="Enter your job title." />
@@ -39,8 +43,6 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 	<label for="PostingDate__c">Posting Date</label><br />
 	<input type="date" name="PostingDate__c" id="PostingDate__c" value="<?php print $job["PostingDate__c"]; ?>" placeholder="Enter the date posted." />
 	<br /><br />
-
-
 
 	<div id="closingDate">
 		<!--beginning closingdate field-->
@@ -60,6 +62,13 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 		<br /><br />
 	</div>
 	<input type="hidden" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="" />
+
+	<?php if($isEdit): ?>
+	<strong>Attachments already uploaded for this job:</strong><br />
+	<?php foreach($attachments as $attachment):?>
+	<a href="job/delete/Attachment/<?php $attachment["Id"] ?>">Delete</a> <?php print $attachment["Name"] ?> <br />
+	<?php endforeach ?>
+	<?php endif ?><br /><br />
 
 
 	<!--changed attachment to an array type-->

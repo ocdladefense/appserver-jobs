@@ -19,28 +19,12 @@
 			"callback": "createPosting",
 			"content-type": "text\/html"
 		},
-		"attachment/%id/%name": {
-			"callback": "getAttachment",
-			"content-type": "application/base64"
-		},
-		"object/job/list": {
-			"callback": "listJobs",
-			"content-type": "text\/html"
-		},
-		"job/%id/edit": {
+		"job/edit/%id":{
 			"callback": "edit",
 			"content-type": "text\/html"
 		},
-		"job/%id/delete": {
-			"callback": "deletePosting",
-			"content-type": "text\/html"
-		},
-		"documents": {
-			"callback": "showSubjects",
-			"content-type": "text\/html"
-		},
-		"documents/%subject": {
-			"callback": "showDocuments",
+		"job/delete/%sobjectType/%id":{
+			"callback": "delete",
 			"content-type": "text\/html"
 		}
 	}
