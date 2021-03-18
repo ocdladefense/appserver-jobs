@@ -63,6 +63,7 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 	</div>
 	<input type="hidden" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="" />
 
+	<!-- this is not working yet -->
 	<?php if($isEdit): ?>
 	<strong>Attachments already uploaded for this job:</strong><br />
 	<?php foreach($attachments as $attachment):?>
