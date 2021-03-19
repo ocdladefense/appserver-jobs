@@ -1,6 +1,12 @@
 <?php
 $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 
+$hasAttachment = $attachment != null;
+if($hasAttachment){
+	
+	$classNames .= " has-attachment ";
+}
+
 ?>
 
 <!--CSS to toggle closing date-->
@@ -19,6 +25,17 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 		margin-top: 27px;
 	}
 	
+	.has-attachment #uploader {
+		display:none;
+	}
+
+	#existing-attachments{
+		display:none;
+	}
+	.has-attachment #existing-attachments{
+		
+		display:block;
+	}
 	
 	button, input {
 		overflow: visible;
@@ -104,10 +121,26 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 	</div>
 
 
+
+
+
+
 	<div class="form-item">
 		<!--changed attachment to an array type-->
-		<label for="Attachments__c[]">Upload Files</label>
-		<input type="file" id="Attachments__c[]" name="Attachments__c[]" >
+		
+		<?php if($hasAttachment): ?>
+			<input type="hidden" name="attachmentId" id="attachmentId" value="<?php print $attachment["Id"]; ?>" />
+			<div id="existing-attachments">
+				<strong>Uploaded Attachments</strong><br />
+				<a class="toggle-file-upload" href="#" onclick="toggleFileUploadElement(); return false;">Edit</a>
+				<label><?php print $attachment["Name"] ?></label><br />
+			</div>
+		<?php endif; ?>
+			<div id="uploader">
+				<label for="Attachments__c[]">Upload Files</label>
+				<input type="file" id="Attachments__c[]" name="Attachments__c[]" />
+				<a class="toggle-file-upload" href="#" onclick="toggleFileUploadElement(); return false;">Cancel</a>
+			</div>
 	</div>
 
 
@@ -122,6 +155,12 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 	function onSubmit() {
 		this.openUntilFilled = document.getElementById('OpenUntilFilledHelper__c');
 		this.openUntilFilled.disabled = true;
+	}
+	function toggleFileUploadElement(e){
+		console.log(e);
+		let theForm = document.getElementById("jobs-form");
+		let hasExisting = theForm.classList.contains("has-attachment");
+		theForm.classList.toggle("has-attachment");
 	}
 
 	//*JavaScript function to toggle closing date in form view*//

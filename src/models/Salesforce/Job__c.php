@@ -1,17 +1,23 @@
 <?php
 namespace Salesforce;
 
+
 class Job__c extends SObject {
 
-    public $Location__c;
-
-    public $Salary__c;
-
-
+    public $Id;
 
     public function __construct($id) {
 
         $this->Id = $id;
+    }
+
+    public static function fromJson($json){
+
+        $obj = json_decode($json);
+
+        $job = new Job__c($obj->id);
+
+        return $job;
     }
 
 
@@ -19,8 +25,7 @@ class Job__c extends SObject {
     public function getSObject(){ 
 
         return array(
-            "Name" => $this->getName(),
-            "ParentId" => $this->ParentId
+            "Name" => "some name"
         );
     }
 }

@@ -1,4 +1,3 @@
-
 <style type="text/css">
 	.table-headers {
 		display: none;
@@ -91,4 +90,3 @@
 		<?php endif; ?>
 	</tbody>
 </table>
-

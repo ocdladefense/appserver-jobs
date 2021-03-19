@@ -4,7 +4,8 @@
 	"description": "View and post OCDLA jobs.",
 	"files": [
 		"Job.php",
-		"ListTemplate.php"
+		"ListTemplate.php",
+		"/models/salesforce/Job__c.php"
 	],
 	"routes": {
 		"jobs": {

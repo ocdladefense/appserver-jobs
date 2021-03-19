@@ -1,7 +1,8 @@
 <?php
 
-use \File\File as File;
-use \Salesforce\Attachment as Attachment;
+use File\File as File;
+use Salesforce\Attachment as Attachment;
+use Salesforce\Job__c as Job__c;
 
 class JobsModule extends Module
 {
@@ -53,65 +54,81 @@ class JobsModule extends Module
 		$isEdit = $job == null ? false : true;
 		$tpl = new Template("job-form");
 		$tpl->addPath(__DIR__ . "/templates");
+		$attachments = $this->getAttachments($job["Id"]);
+		$attachment = $attachments[0];
 
 		return $tpl->render(array(
 			"job" => $job,
 			"isEdit" => $isEdit,
-			"attachments" => $this->getAttachments($job["Id"])
+			"attachment" => $attachment
 		));
 	}
 
-	public function createPosting() {
-		
-		$req = $this->getRequest();
-
-		$jobId = $this->upsertJob();
-
-		if($req->getFiles()->size() > 0){
-
-			$attachmentId = $this->insertAttachment($jobId);
-		}
-
-		header('Location: /jobs', true, 302);
-	}
 
 	// Gets form data from the request, inserts or updates a "Job__c" object, and returns the Id of the object.
-	public function upsertJob() {
+	public function createPosting() {
 
 		$sobjectName = "Job__c";
 		$api = $this->loadForceApi();
 
 		$req = $this->getRequest();
+		$fileList = $req->getFiles();
+		$numberOfFiles = $fileList->size();
 		$record = $req->getBody();
+		$existingAttachmentId = $record->attachmentId;
+		unset($record->attachmentId);
+		
+		$record->OpenUntilFilled__c = $record->OpenUntilFilled__c == "" ? False : True;
+		$record->IsActive__c = True;
+		$jobId = $record->Id;
 
 		$resp = $api->upsert($sobjectName, $record);
 
 		if(!$resp->isSuccess()){
 
-			throw new Exception($resp->getErrorMessage());
+			$message = $resp->getErrorMessage();
+			throw new Exception($message);
 		}
 
-		$resp = json_decode($resp->getBody());
+		$job = null != $jobId ? new Job__c($jobId) : Job__c::fromJson($resp->getBody());
 
-		return $resp->id;
+		$jobId = $job->Id;
+
+		if($numberOfFiles > 0){
+			
+			if($existingAttachmentId != null){
+				
+				$this->delete("Attachment", $existingAttachmentId);
+			}
+
+			$attachmentId = $this->insertAttachment($jobId, $fileList->getFirst());
+		}
+
+		header('Location: /jobs', true, 302);
 	}
 
 	// Get the FileList" object from the request, use the first file to build an "Attachment/File" object,
 	// insert the Attachment, and return the id.
-	public function insertAttachment($jobId){
+	public function insertAttachment($jobId, $file){
 
 		$fileClass = "Salesforce\Attachment"; // Will come from a configuration.
 
-		$req = $this->getRequest();
-
-		$file = $req->getFiles()->getFirst();
 		$file = $fileClass::fromFile($file);
 		$file->setParentId($jobId);
 
 		$api = $this->loadForceApi();
 
-		$resp = json_decode($api->uploadFile($file));
-		return $resp->id;
+		$resp = $api->uploadFile($file);
+
+		if(!$resp->isSuccess()){
+
+			$message = $resp->getErrorMessage();
+			throw new Exception($message);
+		}
+
+		$attachment = $fileClass::fromJson($resp->getBody());
+
+		return $attachment->Id;
 	}
 
 	public function edit($id){
