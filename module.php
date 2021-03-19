@@ -23,7 +23,7 @@ class JobsModule extends Module
 		$api = $this->loadForceApi();
 		
 		// Query for job records
-		$jobResults = $api->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c FROM Job__c ORDER BY PostingDate__c DESC");
+		$jobResults = $api->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c FROM Job__c WHERE IsActive__c = True ORDER BY PostingDate__c DESC");
 
 		// Creates an array for holding "Job__c" objects.
 		$jobRecords = $jobResults["records"];
@@ -57,7 +57,7 @@ class JobsModule extends Module
 		return $tpl->render(array(
 			"job" => $job,
 			"isEdit" => $isEdit,
-			"attachments" => $this->getAttachments($job["id"])
+			"attachments" => $this->getAttachments($job["Id"])
 		));
 	}
 
@@ -84,7 +84,14 @@ class JobsModule extends Module
 		$req = $this->getRequest();
 		$record = $req->getBody();
 
-		$resp = json_decode($api->upsert($sobjectName, $record));
+		$resp = $api->upsert($sobjectName, $record);
+
+		if(!$resp->isSuccess()){
+
+			throw new Exception($resp->getErrorMessage());
+		}
+
+		$resp = json_decode($resp->getBody());
 
 		return $resp->id;
 	}
@@ -130,15 +137,8 @@ class JobsModule extends Module
 
 		$api = $this->loadForceApi();
 		
-		return array(
-			array(
-				"Name" => "attachment1.txt",
-				"Id"   => "0000000000"
-			),
-			array(
-				"Name" => "attachment2.txt",
-				"Id"   => "0000000000"
-			)
-		);
+		$attResults = $api->query("SELECT Id, Name FROM Attachment Where ParentId = '{$jobId}'");
+
+		return $attResults["records"];
 	}
 }

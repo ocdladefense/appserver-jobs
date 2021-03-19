@@ -8,14 +8,15 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 	.open-until-filled #closingDate {
 		display: none;
 	}
-	
-	
-	
-	input[type="submit"],
-	input[type="file"] {
+	input[type="submit"],input[type="file"] {
 		display: block;
 		padding: 4px;
 	}
+	.table-header, .table-row{
+		margin-left: 50px;
+	}
+
+	
 </style>
 
 <form enctype="multipart/form-data" onsubmit="onSubmit();" class="<?php print $classNames; ?>" id="jobs-form" name="form-jobs" method="post" action="/jobs/create">
@@ -30,7 +31,8 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 	<label for="Name">Job Title</label><br />
 	<input type="text" name="Name" id="Name" value="<?php print $job["Name"]; ?>" placeholder="Enter your job title." />
 	<input type="hidden" name="Id" id="Id" value="<?php print $job["Id"]; ?>" />
-	<br /><br />
+	
+	<label>Is Active:	</label><input type="checkbox" name="IsActive__c" /><br />
 
 	<label for="Salary__c">Salary</label><br />
 	<input type="text" name="Salary__c" id="Salary__c" value="<?php print $job["Salary__c"]; ?>" placeholder="Enter the salary." />
@@ -52,6 +54,7 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 	</div>
 
 
+
 	<div onclick="handleCheck()">
 		<label for="OpenUntilFilled__c">Open Until Filled?</label>&nbsp&nbsp
 		<?php if ($job["OpenUntilFilled__c"] == true) : ?>
@@ -61,14 +64,33 @@ $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 		<?php endif; ?>
 		<br /><br />
 	</div>
-	<input type="hidden" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="" />
+	<?php if ($job["OpenUntilFilled__c"] == true) : ?>
+		<input type="hidden" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="true" />
+	<?php else : ?>
+		<input type="hidden" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="false" />
+	<?php endif; ?>
+
 
 	<!-- this is not working yet -->
 	<?php if($isEdit): ?>
 	<strong>Attachments already uploaded for this job:</strong><br />
-	<?php foreach($attachments as $attachment):?>
-	<a href="job/delete/Attachment/<?php $attachment["Id"] ?>">Delete</a> <?php print $attachment["Name"] ?> <br />
-	<?php endforeach ?>
+	<div class="table" id="job-postings">
+		<tbody>
+			<ul class="table-row">
+				<li class='table-header'>Actions</li>
+				<li class="table-header">Name</li>
+				<li class="table-header">Id</li>
+			</ul>
+			<?php foreach($attachments as $attachment):?>
+			<ul class="table-row">
+				<li class="table-cell cart-middle"><a href="/job/delete/Attachment/<?php print $attachment["Id"] ?>">Delete</a></li>
+				<li class="table-cell cart-middle"><?php print $attachment["Name"] ?></li>
+				<li class="table-cell cart-middle"><?php print $attachment["Id"] ?></li>
+			</ul>
+			 <br />
+			<?php endforeach ?>
+		</tbody>
+	</div>
 	<?php endif ?><br /><br />
 
 

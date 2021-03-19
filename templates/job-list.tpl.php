@@ -6,7 +6,7 @@
 
 	li.table-cell {
 		list-style: none;
-		padding-right:100px;
+		padding-right:50px;
 	}
 
 	@media screen and (min-width: 800px) {
