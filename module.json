@@ -5,7 +5,7 @@
 	"files": [
 		"Job.php",
 		"ListTemplate.php",
-		"/models/salesforce/Job__c.php"
+		"models/salesforce/Job__c.php"
 	],
 	"routes": {
 		"jobs": {
@@ -27,6 +27,10 @@
 		"job/delete/%sobjectType/%id":{
 			"callback": "delete",
 			"content-type": "text\/html"
+		},
+		"attachment/%id":{
+			"callback": "getAttachment",
+			"content-type": "application/base64"
 		}
 	}
 }

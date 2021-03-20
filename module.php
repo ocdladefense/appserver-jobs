@@ -158,4 +158,22 @@ class JobsModule extends Module
 
 		return $attResults["records"];
 	}
+
+	public function getAttachment($id) {
+
+		$api = $this->loadForceApi();
+
+		$results = $api->query("SELECT Id, Name FROM Attachment WHERE Id = '{$id}'");
+
+		$attachment = $results["records"][0];
+
+		$resp = $api->getAttachment($id);
+
+		$file = new File($attachment["Name"]);
+		$file->setContent($resp->getBody());
+		$file->setType($resp->getHeader("Content-Type"));
+
+		return $file;
+	}
+
 }

@@ -59,6 +59,7 @@
 		
 			<?php foreach($jobs as $job):
 				$attachedSObject = $job["attachments"][0];
+				$hasAttachment = $attachedSObject != null;
 			?>
 			<ul class="table-row"> 
 				<?php if($isAdmin || $isMember): ?>
@@ -78,12 +79,14 @@
 				</li>
 				<li class="table-cell cart-middle"><?php print $job["Location__c"]; ?></li>
 				<li class="table-cell cart-middle"><?php print $job["Salary__c"]; ?></li>
-				<li class="table-cell cart-middle"><?php print $attachedSObject["Name"]; ?></li>
-				<li class="table-cell cart-last">
-					<?php if($resource): ?>
-						<a target="_blank" href="/content/modules/jobs/<?php print $resource; ?>">Job Description</a>
-					<?php endif; ?>
-				</li>
+
+				<?php if($hasAttachment): ?>
+					<li class="table-cell cart-middle">
+						<a target="_blank" href="/attachment/<?php print $attachedSObject["Id"]; ?>">
+							<?php print $attachedSObject["Name"]; ?>
+						</a>
+					</li>
+				<?php endif; ?>
 				
 			</ul>
 			<?php endforeach; ?>
