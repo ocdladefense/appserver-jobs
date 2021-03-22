@@ -5,7 +5,7 @@
 	"files": [
 		"Job.php",
 		"ListTemplate.php",
-		"models/salesforce/Job__c.php"
+		"models/Salesforce/Job__c.php"
 	],
 	"routes": {
 		"jobs": {
@@ -14,7 +14,8 @@
 		},
 		"jobs/new": {
 			"callback": "postingForm",
-			"content-type": "text\/html"
+			"content-type": "text\/html",
+			"access": "is_authenticated"
 		},
 		"jobs/create": {
 			"callback": "createPosting",
@@ -22,11 +23,13 @@
 		},
 		"job/edit/%id":{
 			"callback": "edit",
-			"content-type": "text\/html"
+			"content-type": "text\/html",
+			"access": "is_authenticated"
 		},
 		"job/delete/%sobjectType/%id":{
 			"callback": "delete",
-			"content-type": "text\/html"
+			"content-type": "text\/html",
+			"access": "is_authenticated"
 		},
 		"attachment/%id":{
 			"callback": "getAttachment",

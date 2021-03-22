@@ -35,7 +35,7 @@ class JobsModule extends Module
 		foreach($jobRecords as $record){
 
 			$recordId = $record["Id"];
-			$attResults = $api->query("SELECT Id, Name FROM {$relatedSObjectName} Where {$fKeyFieldName} = '{$recordId}'");
+			$attResults = $api->query("SELECT Id, Name FROM {$relatedSObjectName} WHERE {$fKeyFieldName} = '{$recordId}'");
 			$record["attachments"] = $attResults["records"];
 
 			$jobs[] = $record;
@@ -43,7 +43,8 @@ class JobsModule extends Module
 		
 		return $tpl->render(array(
 			"jobs" => $jobs,
-			"isAdmin" => true
+			"isAdmin" => false,
+			"isMember" => is_authenticated()
 		));
 	}
 
@@ -154,7 +155,7 @@ class JobsModule extends Module
 
 		$api = $this->loadForceApi();
 		
-		$attResults = $api->query("SELECT Id, Name FROM Attachment Where ParentId = '{$jobId}'");
+		$attResults = $api->query("SELECT Id, Name FROM Attachment WHERE ParentId = '{$jobId}'");
 
 		return $attResults["records"];
 	}
