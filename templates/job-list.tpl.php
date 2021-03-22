@@ -80,13 +80,15 @@
 				<li class="table-cell cart-middle"><?php print $job["Location__c"]; ?></li>
 				<li class="table-cell cart-middle"><?php print $job["Salary__c"]; ?></li>
 
-				<?php if($hasAttachment): ?>
-					<li class="table-cell cart-middle">
+
+				<li class="table-cell cart-middle">
+					<?php if($hasAttachment): ?>
 						<a target="_blank" href="/attachment/<?php print $attachedSObject["Id"]; ?>">
 							<?php print $attachedSObject["Name"]; ?>
 						</a>
-					</li>
-				<?php endif; ?>
+					<?php endif; ?>
+				</li>
+
 				
 			</ul>
 			<?php endforeach; ?>
