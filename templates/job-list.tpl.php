@@ -4,8 +4,9 @@
 	}
 
 	li.table-cell {
-		list-style: none;
-		padding-right:50px;
+    list-style: none;
+    padding-right: 15px;
+    padding-left: 15px;
 	}
 
 	@media screen and (min-width: 800px) {
