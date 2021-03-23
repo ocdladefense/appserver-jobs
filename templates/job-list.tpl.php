@@ -59,7 +59,18 @@
 		
 			<?php foreach($jobs as $job):
 				$attachedSObject = $job["attachments"][0];
+				$docName = $attachedSObject["Name"];
 				$hasAttachment = $attachedSObject != null;
+				
+				if($hasAttachment) {
+					$parts = explode(".", $docName);
+					$ext = array_pop($parts);
+					$name = implode(".", $parts);
+					$tooLong = strlen($name) > 20;
+					$short = substr($name, 0, 10);
+
+					$filename = ($tooLong ? ($short . "...") : ($name.".")) . $ext;
+				}
 			?>
 			<ul class="table-row"> 
 				<?php if($isAdmin || $isMember): ?>
@@ -83,8 +94,8 @@
 
 				<li class="table-cell cart-middle">
 					<?php if($hasAttachment): ?>
-						<a target="_blank" href="/attachment/<?php print $attachedSObject["Id"]; ?>">
-							<?php print $attachedSObject["Name"]; ?>
+						<a title="<?php print $docName; ?>" target="_blank" href="/attachment/<?php print $attachedSObject["Id"]; ?>">
+							<?php print $filename; ?>
 						</a>
 					<?php endif; ?>
 				</li>
