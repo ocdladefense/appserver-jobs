@@ -24,7 +24,7 @@ class JobsModule extends Module
 		$api = $this->loadForceApi();
 		
 		// Query for job records
-		$jobResults = $api->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c FROM Job__c WHERE IsActive__c = True ORDER BY PostingDate__c DESC");
+		$jobResults = $api->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c FROM Job__c ORDER BY PostingDate__c DESC");
 
 		// Creates an array for holding "Job__c" objects.
 		$jobRecords = $jobResults["records"];
@@ -80,16 +80,16 @@ class JobsModule extends Module
 		unset($record->attachmentId);
 		
 		$record->OpenUntilFilled__c = $record->OpenUntilFilled__c == "" ? False : True;
-		$record->IsActive__c = True;
+		//$record->IsActive__c = True;
 		$jobId = $record->Id;
 
 		$resp = $api->upsert($sobjectName, $record);
 
-		if(!$resp->isSuccess()){
+		/*if(!$resp->isSuccess()){
 
 			$message = $resp->getErrorMessage();
 			throw new Exception($message);
-		}
+		}*/
 
 		$job = null != $jobId ? new Job__c($jobId) : Job__c::fromJson($resp->getBody());
 
