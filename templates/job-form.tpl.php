@@ -115,10 +115,15 @@ if($hasAttachment){
 			<input type="checkbox" name="OpenUntilFilledHelper__c" id="OpenUntilFilledHelper__c" value="true" />
 		<?php endif; ?>
 	</div>
+	<?php if ($job["OpenUntilFilled__c"] == true) : ?>
+		<input type="hidden" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="true" />
+	<?php else : ?>
+		<input type="hidden" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="false" />
+	<?php endif; ?>
 	
-	<div class="form-item">
+	<!--<div class="form-item">
 		<input type="hidden" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="" />
-	</div>
+	</div>-->
 
 
 

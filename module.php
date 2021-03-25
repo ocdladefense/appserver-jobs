@@ -79,7 +79,7 @@ class JobsModule extends Module
 		$existingAttachmentId = $record->attachmentId;
 		unset($record->attachmentId);
 		
-		$record->OpenUntilFilled__c = $record->OpenUntilFilled__c == "" ? False : True;
+		//$record->OpenUntilFilled__c = $record->OpenUntilFilled__c == "" ? False : True;
 		//$record->IsActive__c = True;
 		$jobId = $record->Id;
 
