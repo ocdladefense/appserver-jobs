@@ -121,9 +121,9 @@ if($hasAttachment){
 		<input type="hidden" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="false" />
 	<?php endif; ?>
 	
-	<!--<div class="form-item">
+	<div class="form-item">
 		<input type="hidden" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="" />
-	</div>-->
+	</div>
 
 
 
