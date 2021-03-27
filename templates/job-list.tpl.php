@@ -84,7 +84,9 @@
 				<li class="table-cell cart-middle"><?php print $job["PostingDate__c"]; ?></li>
 				<li class="table-cell cart-middle">
 					<?php if($job["OpenUntilFilled__c"]): ?>
+					<!--not showing up in form? -->
 						Open until filled
+						<!--END-->
 					<?php else: ?>
 						<?php print $job["ClosingDate__c"]; ?>
 					<?php endif; ?>
