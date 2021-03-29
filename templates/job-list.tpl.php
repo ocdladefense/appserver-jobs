@@ -39,7 +39,7 @@
 	<tbody>
 
 		<ul class="table-row">
-			<?php if($isAdmin || $isMember || true): ?>
+			<?php if($isAdmin || $isMember): ?>
 			<li class='table-header'>Actions</li>
 			<?php endif ?>
 			<li class="table-header">Title</li>
@@ -74,7 +74,7 @@
 				}
 			?>
 			<ul class="table-row"> 
-				<?php if($isAdmin || $isMember || true): ?>
+				<?php if($isAdmin || $isMember): ?>
 					<li class="table-cell cart-first">
 						<a href="/job/edit/<?php print $job["Id"]; ?>">Edit</a>
 						<a href="/job/delete/Job__c/<?php print $job["Id"]; ?>">Delete</a>

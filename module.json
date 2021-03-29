@@ -2,6 +2,7 @@
 	"comment": "Module definition file.",
 	"name": "jobs",
 	"description": "View and post OCDLA jobs.",
+	"connectedApp": "default",
 	"files": [
 		"Job.php",
 		"ListTemplate.php",
