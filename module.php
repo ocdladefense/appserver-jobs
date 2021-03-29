@@ -1,174 +1,217 @@
 <?php
 
-// use Salesforce\Database as Database;
-use \File\File as File;
+use File\File as File;
+use Salesforce\Attachment as Attachment;
+use Salesforce\Job__c as Job__c;
 
 class JobsModule extends Module
 {
-	/*TEST TRASH to help debug*/
-	//var_dump($obj);
-	//ini_set('display_errors', 1);
-	//echo "Hello World!";
-	//phpinfo();
-	//exit;
-	/*END TEST TRASH*/
 
-	public function __construct()
-	{
+	public function __construct() {
+
 		parent::__construct();
 	}
 
+	// Queries salesforce for all "Job__c" objects and related docs/attachments, and renders the objects in a template.
+	public function home() {
 
-	public function home()
-	{
+		//$relatedSObjectName = "Attachment"; // Will come from configuration.
+		//$fKeyFieldName = $relatedSObjectName == "Attachment" || $relatedSObjectName == "ContentDocument" ? "ParentId" : "FolderId";
+
 		$tpl = new ListTemplate("job-list");
 		$tpl->addPath(__DIR__ . "/templates");
 
-
-		$force = $this->loadForceApi();
+		$api = $this->loadForceApi();
 		
-		//query for job records//
-		$results = $force->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c FROM Job__c ORDER BY PostingDate__c DESC");
+		// Query for job records
+		$jobResults = $api->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c ORDER BY PostingDate__c DESC");//restored subquery for attachments//
 
-		//creates an array containing each job record//
-		$records = $results["records"];
-		
+		// Creates an array for holding "Job__c" objects.
+		$jobRecords = $jobResults["records"];
+
+		$jobs = $this->GetAttachments2($jobRecords);
+		//$jobs = $this->GetContentDocuments($jobRecords);
+
 		return $tpl->render(array(
-			"jobs" => records
+			"jobs" => $jobs,
+			"isAdmin" => false,
+			"isMember" => is_authenticated()
+		));
+	}
+
+	public function GetAttachments2($jobRecords){
+
+		$api = $this->loadForceApi();
+		// What if there is more than one type of related sobjects for a job.  Do you want to show all attached sobjects?
+		$relatedSObjectName = "Attachment"; // Will come from configuration.
+		$fKeyFieldName = $relatedSObjectName == "Attachment" || $relatedSObjectName == "ContentDocument" ? "ParentId" : "FolderId";
+		$jobs = array();
+		foreach($jobRecords as $record){
+
+			$recordId = $record["Id"];
+			$attResults = $api->query("SELECT Id, Name FROM {$relatedSObjectName} WHERE {$fKeyFieldName} = '{$recordId}'");
+			$record["attachments"] = $attResults["records"];
+
+			$jobs[] = $record;
+		}
+		return $jobs;
+	}
+
+	public function GetContentDocuments($jobRecords){
+		$api = $this->loadForceApi();
+
+		for($i = 0; $i < count($jobRecords); $i++) {
+			$jobId = $jobRecords[$i]["Id"];
+			$jobs[$jobId] = $jobRecords[$i];
+		}
+	
+		//uses implode to put the id's in a string the seperator goes first//
+		$Ids = implode("', '", array_keys($jobs)); 
+
+		//saves-casts the $ids variable as a string in single quotes// 
+		$Ids = "'$Ids'";
+
+		//queries for documents//
+		$docResults = $api->query("SELECT Id, LinkedEntityId, LinkedEntity.Name, ContentDocumentId, ContentDocument.Title, ContentDocument.OwnerId, ContentDocument.LatestPublishedVersionId, ContentDocument.FileExtension, ContentDocument.FileType FROM ContentDocumentLink WHERE LinkedEntityId IN ($Ids)");
+
+		//creates an array holding each document//
+		$documents = $docResults["records"];
+
+		foreach($documents as $document) {
+			$jobId = $document["LinkedEntityId"]; //puts each document linked idenity id into a single variable
+			$job = &$jobs[$jobId]; //puts a job record and attached document by reference using $jobId as a key
+			$job["Document"] = $document; //creates the document key and adds a document(if exists) to a job in the jobs array
+
+			$jobs[] = $job;
+		}
+		return $jobs;
+	}
+	// Return an HTML form for creating or updating a new Job posting.
+	public function postingForm($job = null) {
+
+		$isEdit = $job == null ? false : true;
+		$tpl = new Template("job-form");
+		$tpl->addPath(__DIR__ . "/templates");
+		$attachments = $this->getAttachments($job["Id"]);
+		$attachment = $attachments[0];
+
+		return $tpl->render(array(
+			"job" => $job,
+			"isEdit" => $isEdit,
+			"attachment" => $attachment
 		));
 	}
 
 
-	/**
-	 * Return an HTML form for creating a new Job posting.
-	 */
-	public function edit($Id = null)
-	{
-		$tpl = new Template("job-form");
-		$tpl->addPath(__DIR__ . "/templates");
+	// Gets form data from the request, inserts or updates a "Job__c" object, and returns the Id of the object.
+	public function createPosting() {
 
+		$sobjectName = "Job__c";
+		$api = $this->loadForceApi();
 
-
-		$Id = "'$Id'";
-
-		//queries the datbase for selected record by Id//
-		$result = $force->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c FROM Job__c WHERE Id = $Id");
+		$req = $this->getRequest();
+		$fileList = $req->getFiles();
+		$numberOfFiles = $fileList->size();
+		$record = $req->getBody();
+		$existingAttachmentId = $record->attachmentId;
+		unset($record->attachmentId);
 		
-		$record = $result["records"][0];
+		$record->OpenUntilFilled__c = $record->OpenUntilFilled__c == "" ? False : True;
+		$record->IsActive__c = True;
+		$jobId = $record->Id;
 
+		$resp = $api->upsert($sobjectName, $record);
 
-		//render job selected to edit//
-		return $tpl->render(array("job" => $record));
+		/*if(!$resp->isSuccess()){
+
+			$message = $resp->getErrorMessage();
+			throw new Exception($message);
+		}*/
+
+		$job = null != $jobId ? new Job__c($jobId) : Job__c::fromJson($resp->getBody());
+
+		$jobId = $job->Id;
+
+		if($numberOfFiles > 0){
+			
+			if($existingAttachmentId != null){
+				
+				$this->delete("Attachment", $existingAttachmentId);
+			}
+
+			$attachmentId = $this->insertAttachment($jobId, $fileList->getFirst());
+		}
+
+		header('Location: /jobs', true, 302);
 	}
 
+	// Get the FileList" object from the request, use the first file to build an "Attachment/File" object,
+	// insert the Attachment, and return the id.
+	public function insertAttachment($jobId, $file){
 
-	public function deletePosting($Id)
-	{
-		$force = $this->loadForceApi();
-		// Represents data submitted to endpoint, i.e., from an HTML form.
+		$fileClass = "Salesforce\Attachment"; // Will come from a configuration.
+
+		$file = $fileClass::fromFile($file);
+		$file->setParentId($jobId);
+
+		$api = $this->loadForceApi();
+
+		$resp = $api->uploadFile($file);
+
+		if(!$resp->isSuccess()){
+
+			$message = $resp->getErrorMessage();
+			throw new Exception($message);
+		}
+
+		$attachment = $fileClass::fromJson($resp->getBody());
+
+		return $attachment->Id;
+	}
+
+	public function edit($id){
+
+		$api = $this->loadForceApi();
+
+		$job = $api->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c FROM Job__c WHERE Id = '{$id}'");
 		
-		//"Job__c is the name of the object I created in Salesforce//
-		$obj = $force->deleteRecordFromSession("Job__c", $Id);
+		return $this->postingForm($job["records"][0]);
+	}
+
+	public function delete($sobjectType, $id) {
+
+		$api = $this->loadForceApi();
+
+		$obj = $api->delete($sobjectType, $id);
 
 		//returning http response status 302 returns to homepage 
 		header('Location: /jobs', true, 302);
-
-		return $obj["records"][0]["Id"];
 	}
 
+	public function getAttachments($jobId) {
 
-	public function createPosting()
-	{
-		$force = $this->loadForceApi();
-
-		// Represents data submitted to endpoint, i.e., from an HTML form.
-		$req = $this->getRequest();
-		$body = $req->getBody();
-
-		//"Job__c is the name of the Job sObject I created in Salesforce//
-		if ($body->Id == "") {
-			unset($body->Id);
-			$obj = $force->insert("Job__c", $body);
-			//ini_set('display_errors', 1);
-			//var_dump($obj);
-			//exit;
-		} else {
-			$obj = $force->updateRecordFromSession("Job__c", $body);
-		}
+		$api = $this->loadForceApi();
 		
-		//returning http response status 302 returns to homepage//
-		header('Location: /jobs', true, 302);
+		$attResults = $api->query("SELECT Id, Name FROM Attachment WHERE ParentId = '{$jobId}'");
 
-		return $obj["records"][0]["Id"];
+		return $attResults["records"];
 	}
 
+	public function getAttachment($id) {
 
-	public function getAttachment($ContentVersionId, $filename = null)
-	{
-		$force = $this->loadForceApi();
-		
-		$resp = $force->getAttachment($ContentVersionId);
-		
+		$api = $this->loadForceApi();
 
-		$file = new File($filename);
+		$results = $api->query("SELECT Id, Name FROM Attachment WHERE Id = '{$id}'");
+
+		$attachment = $results["records"][0];
+
+		$resp = $api->getAttachment($id);
+
+		$file = new File($attachment["Name"]);
 		$file->setContent($resp->getBody());
 		$file->setType($resp->getHeader("Content-Type"));
 
-		
-		// print get_class($file);
-		// exit;
-
-
 		return $file;
-
-		// print $resp->getHeader("Content-Type");
-		// exit;
-
-		// print_r($resp->getHeaderCollection());
-		// exit;
-
-
-		// print $resp->getBody();
-		// exit;
-
-		return $resp;
-		
 	}
 
-
-	public function showSubjects()
-	{
-
-		$results = MysqlDatabase::query("SELECT * FROM LibraryCategories");
-
-
-		/*
-			$array = (
-				"<li class='document'>
-						<a href='https://www.ocdla.org/members_only/motions/{$item["BaseFileName"]}'>
-							{$item["Description
-			);
-			*/
-
-		return implode("\n", $results->each(function ($item) {
-			return "<li class='document'><a href='/documents/{$item["LibraryCategoryID"]}'>{$item["LibraryCategoryName"]}</a></li>";
-		}));
-	}
-
-
-	public function showDocuments($catId)
-	{
-
-
-		$results = MysqlDatabase::query("SELECT * FROM Documents WHERE LibraryCategoryID = {$catId}");
-
-		return "<div class='table'>" . implode("\n", $results->each(function ($doc) {
-			return "<ul class='table-row'>
-									<li class='table-cell'>
-										<a target='_new' href='https://www.ocdla.org/members_only/motions/{$doc["BaseFileName"]}'>{$doc["BaseFileName"]}</a>
-									</li>
-									<li class='table-cell'>{$doc["Abstract"]}</li>
-							</ul>";
-		})) . "</div>";
-	}
 }
