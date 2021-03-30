@@ -1,6 +1,8 @@
 <?php
 
 use File\File;
+use Http\HttpHeader;
+use Http\HttpResponse;
 use Salesforce\Attachment;
 use Salesforce\Job__c;
 
@@ -97,8 +99,8 @@ class JobsModule extends Module
 		$isEdit = $job == null ? false : true;
 		$tpl = new Template("job-form");
 		$tpl->addPath(__DIR__ . "/templates");
-		$attachments = $this->getAttachments($job["Id"]);
-		$attachment = $attachments[0];
+
+		$attachment = null;
 
 		return $tpl->render(array(
 			"job" => $job,
@@ -115,19 +117,9 @@ class JobsModule extends Module
 		$api = $this->loadForceApi();
 
 		$req = $this->getRequest();
-		$body = $req->getBody();
 		$files = $req->getFiles();
-		//var_dump($body);
-		//exit;
-		//"Job__c is the name of the Job sObject I created in Salesforce//
-		if ($body->Id == "") {
-			unset($body->Id);
-			$obj = $api->upsert("Job__c", $body);
-		} else {
-			$obj = $api->update("Job__c", $body);
-		}
-		$fileList = $req->getFiles();
-		$numberOfFiles = $fileList->size();
+
+		$numberOfFiles = $files->size();
 		$record = $req->getBody();
 		$existingAttachmentId = $record->attachmentId;
 		unset($record->attachmentId);
@@ -146,7 +138,6 @@ class JobsModule extends Module
 
 		$job = null != $jobId ? new Job__c($jobId) : Job__c::fromJson($resp->getBody());
 
-		$jobId = $job->Id;
 
 		if($numberOfFiles > 0){
 			
@@ -155,10 +146,11 @@ class JobsModule extends Module
 				$this->delete("Attachment", $existingAttachmentId);
 			}
 
-			$attachmentId = $this->insertAttachment($jobId, $fileList->getFirst());
+			$attachmentId = $this->insertAttachment($job->Id, $files->getFirst());
 		}
-
-		header('Location: /jobs', true, 302);
+		$redirect = new HttpResponse();
+		$redirect->addHeader(new HttpHeader("Location", "/jobs"));
+		return $redirect;
 	}
 
 	// Get the FileList" object from the request, use the first file to build an "Attachment/File" object,
@@ -189,7 +181,7 @@ class JobsModule extends Module
 
 		$api = $this->loadForceApi();
 
-		$job = $api->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c FROM Job__c WHERE Id = '{$id}'");
+		$job = $api->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c WHERE Id = '{$id}'");
 		
 		return $this->postingForm($job["records"][0]);
 	}
@@ -202,15 +194,6 @@ class JobsModule extends Module
 
 		//returning http response status 302 returns to homepage 
 		header('Location: /jobs', true, 302);
-	}
-
-	public function getAttachments($jobId) {
-
-		$api = $this->loadForceApi();
-		
-		$attResults = $api->query("SELECT Id, Name FROM Attachment WHERE ParentId = '{$jobId}'");
-
-		return $attResults["records"];
 	}
 
 	public function getAttachment($id) {
