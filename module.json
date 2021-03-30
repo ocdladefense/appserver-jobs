@@ -2,51 +2,39 @@
 	"comment": "Module definition file.",
 	"name": "jobs",
 	"description": "View and post OCDLA jobs.",
+	"connectedApp": "default",
 	"files": [
 		"Job.php",
-		"ListTemplate.php"
+		"ListTemplate.php",
+		"models/Salesforce/Job__c.php"
 	],
 	"routes": {
-		"attachment/%id/%name": {
-			"callback": "getAttachment",
-			"content-type": "application/base64"
-		},
 		"jobs": {
 			"callback":"home",
 			"content-type":"text\/html"
 		},
 		"jobs/new": {
-			"callback": "edit",
+			"callback": "postingForm",
 			"content-type": "text\/html",
-			"access": "is_authenticated" 
+			"access": "is_authenticated"
 		},
 		"jobs/create": {
 			"callback": "createPosting",
 			"content-type": "text\/html"
 		},
-		"object/job/list": {
-			"callback": "listJobs",
-			"content-type": "text\/html"
-		},
-		"job/create": {
-			"callback": "create",
-			"content-type": "text\/html"
-		},
-		"job/%id/edit": {
+		"job/edit/%id":{
 			"callback": "edit",
-			"content-type": "text\/html"
+			"content-type": "text\/html",
+			"access": "is_authenticated"
 		},
-		"job/%id/delete": {
-			"callback": "deletePosting",
-			"content-type": "text\/html"
+		"job/delete/%sobjectType/%id":{
+			"callback": "delete",
+			"content-type": "text\/html",
+			"access": "is_authenticated"
 		},
-		"documents": {
-			"callback": "showSubjects",
-			"content-type": "text\/html"
-		},
-		"documents/%subject": {
-			"callback": "showDocuments",
-			"content-type": "text\/html"
+		"attachment/%id":{
+			"callback": "getAttachment",
+			"content-type": "application/base64"
 		}
 	}
 }

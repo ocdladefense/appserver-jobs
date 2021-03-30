@@ -1,5 +1,5 @@
 <?php
-
+// Figure out the relationship between 'Database\SObject' and 'Salesforce\SObject'.
 use Database\SObject as SObject;
 
 
