@@ -1,4 +1,15 @@
 <?php
+
+use File\File;
+use Salesforce\Attachment;
+use Salesforce\Job__c;
+
+
+
+
+
+
+
 class JobsModule extends Module
 {
 
@@ -111,9 +122,9 @@ class JobsModule extends Module
 		//"Job__c is the name of the Job sObject I created in Salesforce//
 		if ($body->Id == "") {
 			unset($body->Id);
-			$obj = $force->insert("Job__c", $body);
+			$obj = $api->upsert("Job__c", $body);
 		} else {
-			$obj = $force->update("Job__c", $body);
+			$obj = $api->update("Job__c", $body);
 		}
 		$fileList = $req->getFiles();
 		$numberOfFiles = $fileList->size();
@@ -218,8 +229,4 @@ class JobsModule extends Module
 
 		return $file;
 	}
-<<<<<<< HEAD
-=======
-
->>>>>>> 1d11ff46a69ce3f5b431fdc08f278094113a7d08
 }
