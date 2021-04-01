@@ -40,7 +40,7 @@ class JobsModule extends Module
 		return $tpl->render(array(
 			"jobs" => $jobs,
 			"isAdmin" => false,
-			"isMember" => is_authenticated()
+			"isMember" => true // is_authenticated()
 		));
 	}
 

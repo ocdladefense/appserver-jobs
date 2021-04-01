@@ -16,7 +16,7 @@
 		"jobs/new": {
 			"callback": "postingForm",
 			"content-type": "text\/html",
-			"access": "is_authenticated"
+			"access": true
 		},
 		"jobs/create": {
 			"callback": "createPosting",
