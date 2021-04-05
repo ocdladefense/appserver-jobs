@@ -40,9 +40,7 @@ class JobsModule extends Module
 		// Creates an array for holding "Job__c" objects.
 		$jobRecords = $resp->getRecords();
 
-
-		//$jobs = $this->GetAttachments2($jobRecords);
-		//$jobs = $this->GetContentDocuments($jobRecords);
+		$jobRecords = $this->includeRecordAttachments($jobRecords);
 
 		return $tpl->render(array(
 			"jobs" => $jobRecords,
@@ -51,7 +49,7 @@ class JobsModule extends Module
 		));
 	}
 
-	public function GetAttachments2($jobRecords){
+	public function includeRecordAttachments($jobRecords){
 
 		$api = $this->loadForceApi();
 		// What if there is more than one type of related sobjects for a job.  Do you want to show all attached sobjects?
@@ -131,6 +129,7 @@ class JobsModule extends Module
 		
 		$record->OpenUntilFilled__c = $record->OpenUntilFilled__c == "" ? False : True;
 		$record->IsActive__c = True;
+		$recordId = $record->Id;
 
 		$resp = $api->upsert($sobjectName, $record);
 
@@ -153,7 +152,7 @@ class JobsModule extends Module
 				$this->delete("Attachment", $existingAttachmentId);
 			}
 
-			$attachmentId = $this->insertAttachment($jobId, $fileList->getFirst());
+			$attachmentId = $this->insertAttachment($recordId, $files->getFirst());
 		}
 
 		header('Location: /jobs', true, 302);
@@ -162,6 +161,11 @@ class JobsModule extends Module
 	// Get the FileList" object from the request, use the first file to build an "Attachment/File" object,
 	// insert the Attachment, and return the id.
 	public function insertAttachment($jobId, $file){
+
+		if($jobId == null){
+
+			throw new Exception("ERROR_ADDING_ATTACHMENT:  The job id can not be null when adding attachments.");
+		}
 
 		$fileClass = "Salesforce\Attachment"; // Will come from a configuration.
 
@@ -178,7 +182,7 @@ class JobsModule extends Module
 			throw new Exception($message);
 		}
 
-		$attachment = $fileClass::fromJson($resp->getBody());
+		$attachment = $fileClass::fromArray($resp->getBody());
 
 		return $attachment->Id;
 	}
