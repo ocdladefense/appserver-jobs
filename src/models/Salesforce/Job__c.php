@@ -11,11 +11,9 @@ class Job__c extends SObject {
         $this->Id = $id;
     }
 
-    public static function fromJson($json){
+    public static function fromArray($objArray){
 
-        $obj = json_decode($json);
-
-        $job = new Job__c($obj->id);
+        $job = new Job__c($objArray["id"]);
 
         return $job;
     }

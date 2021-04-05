@@ -20,6 +20,8 @@ class JobsModule extends Module
 	// Queries salesforce for all "Job__c" objects and related docs/attachments, and renders the objects in a template.
 	public function home() {
 
+		//var_dump($_SESSION);exit;
+
 		//$relatedSObjectName = "Attachment"; // Will come from configuration.
 		//$fKeyFieldName = $relatedSObjectName == "Attachment" || $relatedSObjectName == "ContentDocument" ? "ParentId" : "FolderId";
 
@@ -29,16 +31,21 @@ class JobsModule extends Module
 		$api = $this->loadForceApi();
 		
 		// Query for job records
-		$jobResults = $api->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c ORDER BY PostingDate__c DESC");//restored subquery for attachments//
+		$resp = $api->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c ORDER BY PostingDate__c DESC");//restored subquery for attachments//
 
+		if(!$resp->isSuccess()){
+
+			var_dump($resp);exit;
+		}
 		// Creates an array for holding "Job__c" objects.
-		$jobRecords = $jobResults["records"];
+		$jobRecords = $resp->getRecords();
 
-		$jobs = $this->GetAttachments2($jobRecords);
+
+		//$jobs = $this->GetAttachments2($jobRecords);
 		//$jobs = $this->GetContentDocuments($jobRecords);
 
 		return $tpl->render(array(
-			"jobs" => $jobs,
+			"jobs" => $jobRecords,
 			"isAdmin" => false,
 			"isMember" => true // is_authenticated()
 		));
@@ -55,7 +62,7 @@ class JobsModule extends Module
 
 			$recordId = $record["Id"];
 			$attResults = $api->query("SELECT Id, Name FROM {$relatedSObjectName} WHERE {$fKeyFieldName} = '{$recordId}'");
-			$record["attachments"] = $attResults["records"];
+			$record["attachments"] = $attResults->getRecords();
 
 			$jobs[] = $record;
 		}
@@ -113,38 +120,29 @@ class JobsModule extends Module
 
 		$sobjectName = "Job__c";
 		$api = $this->loadForceApi();
-
 		$req = $this->getRequest();
-		$body = $req->getBody();
+
 		$files = $req->getFiles();
-		//var_dump($body);
-		//exit;
-		//"Job__c is the name of the Job sObject I created in Salesforce//
-		if ($body->Id == "") {
-			unset($body->Id);
-			$obj = $api->upsert("Job__c", $body);
-		} else {
-			$obj = $api->update("Job__c", $body);
-		}
-		$fileList = $req->getFiles();
-		$numberOfFiles = $fileList->size();
+		$numberOfFiles = $files->size();
+
 		$record = $req->getBody();
 		$existingAttachmentId = $record->attachmentId;
 		unset($record->attachmentId);
 		
 		$record->OpenUntilFilled__c = $record->OpenUntilFilled__c == "" ? False : True;
 		$record->IsActive__c = True;
-		$jobId = $record->Id;
 
 		$resp = $api->upsert($sobjectName, $record);
 
-		/*if(!$resp->isSuccess()){
+		if(!$resp->isSuccess()){
 
 			$message = $resp->getErrorMessage();
 			throw new Exception($message);
-		}*/
+		}
 
-		$job = null != $jobId ? new Job__c($jobId) : Job__c::fromJson($resp->getBody());
+		$jobId = $resp->getBody()["id"];
+
+		$job = null != $jobId ? new Job__c($jobId) : Job__c::fromArray($resp->getBody());
 
 		$jobId = $job->Id;
 
@@ -189,9 +187,9 @@ class JobsModule extends Module
 
 		$api = $this->loadForceApi();
 
-		$job = $api->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c FROM Job__c WHERE Id = '{$id}'");
+		$resp = $api->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c FROM Job__c WHERE Id = '{$id}'");
 		
-		return $this->postingForm($job["records"][0]);
+		return $this->postingForm($resp->getRecord());
 	}
 
 	public function delete($sobjectType, $id) {
@@ -210,7 +208,7 @@ class JobsModule extends Module
 		
 		$attResults = $api->query("SELECT Id, Name FROM Attachment WHERE ParentId = '{$jobId}'");
 
-		return $attResults["records"];
+		return $attResults->getRecords();
 	}
 
 	public function getAttachment($id) {

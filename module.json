@@ -16,11 +16,14 @@
 		"jobs/new": {
 			"callback": "postingForm",
 			"content-type": "text\/html",
-			"access": true
+			"access":"is_authenticated",
+			"authorization":"webserver"
 		},
 		"jobs/create": {
 			"callback": "createPosting",
-			"content-type": "text\/html"
+			"content-type": "text\/html",
+			"access":"is_authenticated",
+			"authorization":"webserver"
 		},
 		"job/edit/%id":{
 			"callback": "edit",
