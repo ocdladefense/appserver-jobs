@@ -6,7 +6,8 @@
 	"files": [
 		"Job.php",
 		"ListTemplate.php",
-		"models/Salesforce/Job__c.php"
+		"models/Salesforce/Job__c.php",
+		"JobList.php"
 	],
 	"routes": {
 		"jobs": {

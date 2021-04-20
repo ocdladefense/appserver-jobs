@@ -49,21 +49,23 @@
 			<li class="table-header">Salary</li>
 			<li class="table-header">Documents</li>
 		</ul>
-
-			
-		<?php if(!isset($jobs) || (isset($jobs) && count($jobs) < 1)): ?>
+				
+	 
+		<?php if(!isset($jobs) || (isset($jobs) && count($jobs->getRecords()) < 1)): ?>
 			<ul class="table-row">
 				<li>There are no current job postings.</li>
 			</ul>
 			
 		<?php else: ?>
 		
-			<?php foreach($jobs as $job):
-				$attachedSObject = $job["attachments"][0];
-				$docName = $attachedSObject["Name"];
-				$hasAttachment = $attachedSObject != null;
+			<?php foreach($jobs->getRecords() as $job):
+				$Id = $job["Id"];
+				$attachedSObjects = $jobs->getAttachments($Id);
+				$hasAttachment = $attachedSObjects != null;
+				
 				
 				if($hasAttachment) {
+					$docName = $attachedSObjects[0]["Name"];
 					$parts = explode(".", $docName);
 					$ext = array_pop($parts);
 					$name = implode(".", $parts);
@@ -84,7 +86,7 @@
 				<li class="table-cell cart-middle"><?php print $job["PostingDate__c"]; ?></li>
 				<li class="table-cell cart-middle">
 					<?php if($job["OpenUntilFilled__c"]): ?>
-					<!--not showing up in form? -->
+					<!--message in the closing date when open until flled is selected -->
 						Open until filled
 						<!--END-->
 					<?php else: ?>
@@ -97,7 +99,7 @@
 
 				<li class="table-cell cart-middle">
 					<?php if($hasAttachment): ?>
-						<a title="<?php print $docName; ?>" target="_blank" href="/attachment/<?php print $attachedSObject["Id"]; ?>">
+						<a title="<?php print $docName; ?>" target="_blank" href="/attachment/<?php print $attachedSObjects[0]["Id"]; ?>">
 							<?php print $filename; ?>
 						</a>
 					<?php endif; ?>

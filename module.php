@@ -8,10 +8,6 @@ use Salesforce\Job__c;
 
 
 
-
-
-
-
 class JobsModule extends Module
 {
 
@@ -19,80 +15,34 @@ class JobsModule extends Module
 		parent::__construct();
 	}
 
+
 	// Queries salesforce for all "Job__c" objects and related docs/attachments, and renders the objects in a template.
 	public function home() {
 
-		//$relatedSObjectName = "Attachment"; // Will come from configuration.
-		//$fKeyFieldName = $relatedSObjectName == "Attachment" || $relatedSObjectName == "ContentDocument" ? "ParentId" : "FolderId";
 
 		$tpl = new ListTemplate("job-list");
 		$tpl->addPath(__DIR__ . "/templates");
 
 		$api = $this->loadForceApi();
 		
-		// Query for job records
-		$jobResults = $api->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c ORDER BY PostingDate__c DESC");//restored subquery for attachments//
+		// Query for job records - subqueries for Attchments.//
+		$result = $api->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c ORDER BY PostingDate__c DESC");
+		
+		$jobList = new JobList($result->getRecords());;
+		$jobList->loadContentDocuments();
 
-		// Creates an array for holding "Job__c" objects.
-		$jobRecords = $jobResults["records"];
+		var_dump($jobList); exit;
 
-		$jobs = $this->GetAttachments2($jobRecords);
-		//$jobs = $this->GetContentDocuments($jobRecords);
 
 		return $tpl->render(array(
-			"jobs" => $jobs,
+			"jobs" => $jobList,
 			"isAdmin" => false,
 			"isMember" => is_authenticated()
 		));
 	}
 
-	public function GetAttachments2($jobRecords){
 
-		$api = $this->loadForceApi();
-		// What if there is more than one type of related sobjects for a job.  Do you want to show all attached sobjects?
-		$relatedSObjectName = "Attachment"; // Will come from configuration.
-		$fKeyFieldName = $relatedSObjectName == "Attachment" || $relatedSObjectName == "ContentDocument" ? "ParentId" : "FolderId";
-		$jobs = array();
-		foreach($jobRecords as $record){
 
-			$recordId = $record["Id"];
-			$attResults = $api->query("SELECT Id, Name FROM {$relatedSObjectName} WHERE {$fKeyFieldName} = '{$recordId}'");
-			$record["attachments"] = $attResults["records"];
-
-			$jobs[] = $record;
-		}
-		return $jobs;
-	}
-
-	public function GetContentDocuments($jobRecords){
-		$api = $this->loadForceApi();
-
-		for($i = 0; $i < count($jobRecords); $i++) {
-			$jobId = $jobRecords[$i]["Id"];
-			$jobs[$jobId] = $jobRecords[$i];
-		}
-	
-		//uses implode to put the id's in a string the seperator goes first//
-		$Ids = implode("', '", array_keys($jobs)); 
-
-		//saves-casts the $ids variable as a string in single quotes// 
-		$Ids = "'$Ids'";
-
-		//queries for documents//
-		$docResults = $api->query("SELECT Id, LinkedEntityId, LinkedEntity.Name, ContentDocumentId, ContentDocument.Title, ContentDocument.OwnerId, ContentDocument.LatestPublishedVersionId, ContentDocument.FileExtension, ContentDocument.FileType FROM ContentDocumentLink WHERE LinkedEntityId IN ($Ids)");
-
-		//creates an array holding each document//
-		$documents = $docResults["records"];
-
-		foreach($documents as $document) {
-			$jobId = $document["LinkedEntityId"]; //puts each document linked idenity id into a single variable
-			$job = &$jobs[$jobId]; //puts a job record and attached document by reference using $jobId as a key
-			$job["Document"] = $document; //creates the document key and adds a document(if exists) to a job in the jobs array
-
-			$jobs[] = $job;
-		}
-		return $jobs;
-	}
 	// Return an HTML form for creating or updating a new Job posting.
 	public function postingForm($job = null) {
 
