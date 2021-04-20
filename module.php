@@ -31,7 +31,8 @@ class JobsModule extends Module
 		$jobList = new JobList($result->getRecords());;
 		$jobList->loadContentDocuments();
 
-		var_dump($jobList); exit;
+
+		//var_dump($list); exit;
 
 
 		return $tpl->render(array(

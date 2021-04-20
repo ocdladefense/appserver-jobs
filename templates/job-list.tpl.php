@@ -47,7 +47,7 @@
 			<li class="table-header">Closes</li>
 			<li class="table-header">Location</li>
 			<li class="table-header">Salary</li>
-			<li class="table-header">Documents</li>
+			<li class="table-header">Attachments</li>
 		</ul>
 				
 	 
