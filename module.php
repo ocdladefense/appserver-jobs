@@ -6,10 +6,10 @@ use Http\HttpResponse;
 use Salesforce\Attachment;
 use Salesforce\Job__c;
 
-
-
+//phpinfo();exit;
 class JobsModule extends Module
 {
+	
 
 	public function __construct() {
 		parent::__construct();
@@ -28,17 +28,17 @@ class JobsModule extends Module
 		// Query for job records - subqueries for Attchments.//
 		$result = $api->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c ORDER BY PostingDate__c DESC");
 		
-		$jobList = new JobList($result->getRecords());;
+		$jobList = new JobList($result->getRecords());
 		$jobList->loadContentDocuments();
 
-
-		//var_dump($list); exit;
+		//var_dump($jobList);exit;
 
 
 		return $tpl->render(array(
 			"jobs" => $jobList,
 			"isAdmin" => false,
-			"isMember" => is_authenticated()
+			//commented out lines 266 - 274 in includes/globals.php to bypass for now
+			//"isMember" => is_authenticated() 
 		));
 	}
 

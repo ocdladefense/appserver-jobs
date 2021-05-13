@@ -4,9 +4,9 @@
 	}
 
 	li.table-cell {
-    list-style: none;
-    padding-right: 15px;
-    padding-left: 15px;
+		list-style: none;
+		padding-right: 15px;
+		padding-left: 15px;
 	}
 
 	@media screen and (min-width: 800px) {
@@ -15,7 +15,7 @@
 		}
 	}
 </style>
-  
+
 
 <div>
 	<h2>OCDLA Jobs</h2>
@@ -39,8 +39,12 @@
 	<tbody>
 
 		<ul class="table-row">
-			<?php if($isAdmin || $isMember): ?>
-			<li class='table-header'>Actions</li>
+			<?php
+
+use Salesforce\ContentDocument;
+
+if ($isAdmin || $isMember) : ?>
+				<li class='table-header'>Actions</li>
 			<?php endif ?>
 			<li class="table-header">Title</li>
 			<li class="table-header">Posted</li>
@@ -49,31 +53,40 @@
 			<li class="table-header">Salary</li>
 			<li class="table-header">Attachments</li>
 		</ul>
-				
-	 
-		<?php if(!isset($jobs) || (isset($jobs) && count($jobs->getRecords()) < 1)): ?>
+
+
+		<?php if (!isset($jobs) || (isset($jobs) && count($jobs->getRecords()) < 1)) {  ?>
 			<ul class="table-row">
 				<li>There are no current job postings.</li>
 			</ul>
 			
-		<?php else: ?>
-		
-			<?php foreach($jobs->getRecords() as $job):
-				$Id = $job["Id"];
-				$attachedSObjects = $jobs->getAttachments($Id);
-				$hasAttachment = $attachedSObjects != null;
-				
-				
-				if($hasAttachment) {
-					$docName = $attachedSObjects[0]["Name"];
-					$parts = explode(".", $docName);
-					$ext = array_pop($parts);
-					$name = implode(".", $parts);
-					$tooLong = strlen($name) > 20;
-					$short = substr($name, 0, 10);
+		<?php } else {
+			$docs = $jobs->getAllAttachments();
+			foreach($jobs->getRecords() as $job):
+				$hasAttachment = false;
+				//print "<h2>"."FUBAR"."</h2>";
+					
 
-					$filename = ($tooLong ? ($short . "...") : ($name.".")) . $ext;
+				$Id = $job["Id"];
+				$doc = $docs[$Id];
+				//var_dump($doc);exit;
+				if($doc != null) {
+					$hasAttachment = true;
 				}
+				/*if($hasAttachment){
+					print "I have an attachment";
+				}
+				else{
+					print "I do not have an attachment";
+				}
+				print "<h2>".$hasAttachment."</h2>";
+				*/
+				if($hasAttachment) {
+					//$name = $doc->getName(); 
+					$name = $doc->getName();
+					//print "<h2>".$name."</h2>";
+				}
+				
 			?>
 			<ul class="table-row"> 
 				<?php if($isAdmin || $isMember): ?>
@@ -99,8 +112,8 @@
 
 				<li class="table-cell cart-middle">
 					<?php if($hasAttachment): ?>
-						<a title="<?php print $docName; ?>" target="_blank" href="/attachment/<?php print $attachedSObjects[0]["Id"]; ?>">
-							<?php print $filename; ?>
+						<a title="<?php print $name; ?>" target="_blank" href="/attachment/<?php print $Id; ?>">
+							<?php print $name; ?>
 						</a>
 					<?php endif; ?>
 				</li>
@@ -108,6 +121,6 @@
 				
 			</ul>
 			<?php endforeach; ?>
-		<?php endif; ?>
+		<?php } ?>
 	</tbody>
-</table>
+	</table>

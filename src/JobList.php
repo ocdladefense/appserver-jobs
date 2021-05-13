@@ -1,15 +1,13 @@
-<?PHP
+<?php
 
 use Salesforce\ContentDocument;
-
+use Salesforce\Attachment;
 class JobList extends Module
 {
 
     //member variables// 
     private $attachments = array();
-    //private $contentDocuments = array();
     private $jobs;
-    //private $count;
 
     //constructor//
     public function __construct($records)
@@ -18,7 +16,7 @@ class JobList extends Module
             $Id = $records[$i]["Id"];
             $attachments = $records[$i]["Attachments"];
             if ($attachments != null) {
-                $this->attachments[$Id] = $attachments["records"];
+                $this->attachments[$Id] = new Attachment($attachments["records"][0]);
             }
         }
         $this->jobs = $records;
@@ -36,7 +34,8 @@ class JobList extends Module
         return $this->attachments[$recordId];
     }
 
-    public function getAllAttachments(){
+    public function getAllAttachments()
+    {
         return $this->attachments;
     }
 
@@ -44,7 +43,7 @@ class JobList extends Module
     public function loadContentDocuments()
     {
         $api = $this->loadForceApi();
-
+        $this->attachments = array(); //temporary?
         for ($i = 0; $i < count($this->jobs); $i++) {
             $jobId = $this->jobs[$i]["Id"];
             $jobs[$jobId] = $this->jobs[$i];
@@ -64,17 +63,11 @@ class JobList extends Module
         //retrieves a documents "LinkedEntityId"//
         foreach ($documents as $document) {
             $linkedEntityId = $document["LinkedEntityId"];
-            
 
-            //compares $jobId to $linkedEntityId if they are equal enter $contentDocument record in that job record//
-            // for ($i = 0; $i < count($this->jobs); $i++) {
-            //     $jobId = $this->jobs[$i]["Id"];
-            //     if ($jobId == $linkedEntityId) {
-            //         $this->jobs[$i]["ContentDocument"] = $document;
-            //     }
-            // }
-            //adds each document to $contentDocuments array//
-            $this->attachments[$linkedEntityId] = $document;
+            
+            //replaces the current attachment with the content document
+            $this->attachments[$linkedEntityId] = ContentDocument::newFromSalesforceRecord($document);
         }
+
     }
 }
