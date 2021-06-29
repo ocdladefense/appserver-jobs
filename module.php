@@ -3,44 +3,34 @@
 use File\File;
 use Salesforce\Attachment;
 use Salesforce\Job__c;
-
-
-
-
-
+use Http\HttpResponse;
+use Http\HttpHeader;
 
 
 class JobsModule extends Module
 {
 
 	public function __construct() {
+		
 		parent::__construct();
 	}
 
-	// Queries salesforce for all "Job__c" objects and related docs/attachments, and renders the objects in a template.
 	public function home() {
-
-		//var_dump($_SESSION);exit;
-
-		//$relatedSObjectName = "Attachment"; // Will come from configuration.
-		//$fKeyFieldName = $relatedSObjectName == "Attachment" || $relatedSObjectName == "ContentDocument" ? "ParentId" : "FolderId";
-
-		$tpl = new ListTemplate("job-list");
-		$tpl->addPath(__DIR__ . "/templates");
 
 		$api = $this->loadForceApi();
 		
-		// Query for job records
-		$resp = $api->query("SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c ORDER BY PostingDate__c DESC");//restored subquery for attachments//
+		$query = "SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c ORDER BY PostingDate__c DESC";
+		
+		$resp = $api->query($query);
 
-		if(!$resp->isSuccess()){
+		if(!$resp->isSuccess()) throw new Exception($resp->getErrorMessage());
 
-			var_dump($resp);exit;
-		}
-		// Creates an array for holding "Job__c" objects.
 		$jobRecords = $resp->getRecords();
 
 		$jobRecords = $this->includeRecordAttachments($jobRecords);
+
+		$tpl = new ListTemplate("job-list");
+		$tpl->addPath(__DIR__ . "/templates");
 
 		return $tpl->render(array(
 			"jobs" => $jobRecords,
@@ -52,9 +42,10 @@ class JobsModule extends Module
 	public function includeRecordAttachments($jobRecords){
 
 		$api = $this->loadForceApi();
-		// What if there is more than one type of related sobjects for a job.  Do you want to show all attached sobjects?
+
 		$relatedSObjectName = "Attachment"; // Will come from configuration.
 		$fKeyFieldName = $relatedSObjectName == "Attachment" || $relatedSObjectName == "ContentDocument" ? "ParentId" : "FolderId";
+
 		$jobs = array();
 		foreach($jobRecords as $record){
 
@@ -64,46 +55,20 @@ class JobsModule extends Module
 
 			$jobs[] = $record;
 		}
+
 		return $jobs;
 	}
 
-	public function GetContentDocuments($jobRecords){
-		$api = $this->loadForceApi();
 
-		for($i = 0; $i < count($jobRecords); $i++) {
-			$jobId = $jobRecords[$i]["Id"];
-			$jobs[$jobId] = $jobRecords[$i];
-		}
-	
-		//uses implode to put the id's in a string the seperator goes first//
-		$Ids = implode("', '", array_keys($jobs)); 
-
-		//saves-casts the $ids variable as a string in single quotes// 
-		$Ids = "'$Ids'";
-
-		//queries for documents//
-		$docResults = $api->query("SELECT Id, LinkedEntityId, LinkedEntity.Name, ContentDocumentId, ContentDocument.Title, ContentDocument.OwnerId, ContentDocument.LatestPublishedVersionId, ContentDocument.FileExtension, ContentDocument.FileType FROM ContentDocumentLink WHERE LinkedEntityId IN ($Ids)");
-
-		//creates an array holding each document//
-		$documents = $docResults["records"];
-
-		foreach($documents as $document) {
-			$jobId = $document["LinkedEntityId"]; //puts each document linked idenity id into a single variable
-			$job = &$jobs[$jobId]; //puts a job record and attached document by reference using $jobId as a key
-			$job["Document"] = $document; //creates the document key and adds a document(if exists) to a job in the jobs array
-
-			$jobs[] = $job;
-		}
-		return $jobs;
-	}
 	// Return an HTML form for creating or updating a new Job posting.
 	public function postingForm($job = null) {
 
 		$isEdit = $job == null ? false : true;
-		$tpl = new Template("job-form");
-		$tpl->addPath(__DIR__ . "/templates");
 		$attachments = $this->getAttachments($job["Id"]);
 		$attachment = $attachments[0];
+
+		$tpl = new Template("job-form");
+		$tpl->addPath(__DIR__ . "/templates");
 
 		return $tpl->render(array(
 			"job" => $job,
@@ -117,7 +82,6 @@ class JobsModule extends Module
 	public function createPosting() {
 
 		$sobjectName = "Job__c";
-		$api = $this->loadForceApi();
 		$req = $this->getRequest();
 
 		$files = $req->getFiles();
@@ -131,19 +95,12 @@ class JobsModule extends Module
 		$record->IsActive__c = True;
 		$recordId = $record->Id;
 
+		$api = $this->loadForceApi();
 		$resp = $api->upsert($sobjectName, $record);
 
-		if(!$resp->isSuccess()){
+		if(!$resp->isSuccess()) throw new Exception($resp->getErrorMessage());
 
-			$message = $resp->getErrorMessage();
-			throw new Exception($message);
-		}
-
-		$jobId = $resp->getBody()["id"];
-
-		$job = null != $jobId ? new Job__c($jobId) : Job__c::fromArray($resp->getBody());
-
-		$jobId = $job->Id;
+		$jobId = $resp->getBody()["id"] != null ? $resp->getBody()["id"] : $recordId;
 
 		if($numberOfFiles > 0){
 			
@@ -152,22 +109,22 @@ class JobsModule extends Module
 				$this->delete("Attachment", $existingAttachmentId);
 			}
 
-			$attachmentId = $this->insertAttachment($recordId, $files->getFirst());
+			$attachmentId = $this->insertAttachment($jobId, $files->getFirst());
 		}
 
-		header('Location: /jobs', true, 302);
+		$resp = new HttpResponse();
+		$resp->addHeader(new HttpHeader("Location", "/jobs"));
+
+		return $resp;
 	}
 
 	// Get the FileList" object from the request, use the first file to build an "Attachment/File" object,
 	// insert the Attachment, and return the id.
 	public function insertAttachment($jobId, $file){
 
-		if($jobId == null){
+		if($jobId == null) throw new Exception("ERROR_ADDING_ATTACHMENT:  The job id can not be null when adding attachments.");
 
-			throw new Exception("ERROR_ADDING_ATTACHMENT:  The job id can not be null when adding attachments.");
-		}
-
-		$fileClass = "Salesforce\Attachment"; // Will come from a configuration.
+		$fileClass = "Salesforce\Attachment";
 
 		$file = $fileClass::fromFile($file);
 		$file->setParentId($jobId);
@@ -176,11 +133,7 @@ class JobsModule extends Module
 
 		$resp = $api->uploadFile($file);
 
-		if(!$resp->isSuccess()){
-
-			$message = $resp->getErrorMessage();
-			throw new Exception($message);
-		}
+		if(!$resp->isSuccess()) throw new Exception($resp->getErrorMessage());
 
 		$attachment = $fileClass::fromArray($resp->getBody());
 
@@ -202,8 +155,10 @@ class JobsModule extends Module
 
 		$obj = $api->delete($sobjectType, $id);
 
-		//returning http response status 302 returns to homepage 
-		header('Location: /jobs', true, 302);
+		$resp = new HttpResponse();
+		$resp->addHeader(new HttpHeader("Location", "/jobs"));
+
+		return $resp;
 	}
 
 	public function getAttachments($jobId) {
@@ -213,22 +168,5 @@ class JobsModule extends Module
 		$attResults = $api->query("SELECT Id, Name FROM Attachment WHERE ParentId = '{$jobId}'");
 
 		return $attResults->getRecords();
-	}
-
-	public function getAttachment($id) {
-
-		$api = $this->loadForceApi();
-
-		$results = $api->query("SELECT Id, Name FROM Attachment WHERE Id = '{$id}'");
-
-		$attachment = $results["records"][0];
-
-		$resp = $api->getAttachment($id);
-
-		$file = new File($attachment["Name"]);
-		$file->setContent($resp->getBody());
-		$file->setType($resp->getHeader("Content-Type"));
-
-		return $file;
 	}
 }

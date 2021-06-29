@@ -3,11 +3,7 @@
 	"name": "jobs",
 	"description": "View and post OCDLA jobs.",
 	"connectedApp": "default",
-	"files": [
-		"Job.php",
-		"ListTemplate.php",
-		"models/Salesforce/Job__c.php"
-	],
+	"files": ["ListTemplate.php","models/Salesforce/Job__c.php"],
 	"routes": {
 		"jobs": {
 			"callback":"home",
@@ -28,12 +24,14 @@
 		"job/edit/%id":{
 			"callback": "edit",
 			"content-type": "text\/html",
-			"access": "is_authenticated"
+			"access": "is_authenticated",
+			"authorization":"webserver"
 		},
 		"job/delete/%sobjectType/%id":{
 			"callback": "delete",
 			"content-type": "text\/html",
-			"access": "is_authenticated"
+			"access": "is_authenticated",
+			"authorization":"webserver"
 		},
 		"attachment/%id":{
 			"callback": "getAttachment",
