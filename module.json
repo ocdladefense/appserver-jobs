@@ -3,7 +3,7 @@
 	"name": "jobs",
 	"description": "View and post OCDLA jobs.",
 	"connectedApp": "default",
-	"files": ["ListTemplate.php","models/Salesforce/Job__c.php"],
+	"files": ["ListTemplate.php"],
 	"routes": {
 		"jobs": {
 			"callback":"home",

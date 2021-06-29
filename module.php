@@ -2,7 +2,6 @@
 
 use File\File;
 use Salesforce\Attachment;
-use Salesforce\Job__c;
 use Http\HttpResponse;
 use Http\HttpHeader;
 
