@@ -1,21 +1,4 @@
-<style type="text/css">
-	.table-headers {
-		display: none;
-	}
-
-	li.table-cell {
-    list-style: none;
-    padding-right: 15px;
-    padding-left: 15px;
-	}
-
-	@media screen and (min-width: 800px) {
-		.table-headers {
-			display: table-row;
-		}
-	}
-</style>
-  
+<link rel="stylesheet" type="text/css" href="<?php print module_path(); ?>/assets/css/jobs.css"></link>
 
 <div>
 	<h2>OCDLA Jobs</h2>
@@ -40,7 +23,7 @@
 
 		<ul class="table-row">
 			<?php if($isAdmin || $isMember): ?>
-			<li class='table-header'>Actions</li>
+				<li class='table-header'>Actions</li>
 			<?php endif ?>
 			<li class="table-header">Title</li>
 			<li class="table-header">Posted</li>

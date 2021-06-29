@@ -34,7 +34,7 @@ class JobsModule extends Module
 		return $tpl->render(array(
 			"jobs" => $jobRecords,
 			"isAdmin" => false,
-			"isMember" => true // is_authenticated()
+			"isMember" => false // is_authenticated()
 		));
 	}
 
