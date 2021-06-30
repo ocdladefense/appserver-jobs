@@ -1,0 +1,13 @@
+{
+    "name": "ocdladefense/appserver-jobs",
+    "description": "A module for viewing and managing OCDLA job postings.",
+    "type": "wordpress-theme",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "TrevorUehlin",
+            "email": "trevoruehlinx1@gmail.com"
+        }
+    ],
+    "require": {}
+}
