@@ -26,38 +26,16 @@ class JobsModule extends Module
 
 		$jobRecords = $resp->getRecords();
 
-		$jobRecords = $this->includeRecordAttachments($jobRecords);
-
 		$tpl = new ListTemplate("job-list");
 		$tpl->addPath(__DIR__ . "/templates");
 
 		return $tpl->render(array(
 			"jobs" => $jobRecords,
-			"isAdmin" => false,
+			"isAdmin" => true,
 			"isMember" => false // is_authenticated()
 		));
 	}
-
-	public function includeRecordAttachments($jobRecords){
-
-		$api = $this->loadForceApi();
-
-		$relatedSObjectName = "Attachment"; // Will come from configuration.
-		$fKeyFieldName = $relatedSObjectName == "Attachment" || $relatedSObjectName == "ContentDocument" ? "ParentId" : "FolderId";
-
-		$jobs = array();
-		foreach($jobRecords as $record){
-
-			$recordId = $record["Id"];
-			$attResults = $api->query("SELECT Id, Name FROM {$relatedSObjectName} WHERE {$fKeyFieldName} = '{$recordId}'");
-			$record["attachments"] = $attResults->getRecords();
-
-			$jobs[] = $record;
-		}
-
-		return $jobs;
-	}
-
+	
 
 	// Return an HTML form for creating or updating a new Job posting.
 	public function postingForm($job = null) {

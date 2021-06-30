@@ -42,7 +42,7 @@
 		<?php else: ?>
 		
 			<?php foreach($jobs as $job):
-				$attachedSObject = $job["attachments"][0];
+				$attachedSObject = $job["Attachments"]["records"][0];
 				$docName = $attachedSObject["Name"];
 				$hasAttachment = $attachedSObject != null;
 				
