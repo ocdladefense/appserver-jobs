@@ -4,6 +4,9 @@ use File\File;
 use Salesforce\Attachment;
 use Http\HttpResponse;
 use Http\HttpHeader;
+use Http\Http;
+use Http\HttpRequest;
+use Salesforce\ContentDocument;
 
 
 class JobsModule extends Module
@@ -79,20 +82,100 @@ class JobsModule extends Module
 
 		$jobId = $resp->getBody()["id"] != null ? $resp->getBody()["id"] : $recordId;
 
-		if($numberOfFiles > 0){
-			
-			if($existingAttachmentId != null){
-				
-				$this->delete("Attachment", $existingAttachmentId);
-			}
+		$contentDocumentId = $this->uploadContentDocument($jobId, $files->getFirst());
 
-			$attachmentId = $this->insertAttachment($jobId, $files->getFirst());
-		}
+		// if($numberOfFiles > 0){
+			
+		// 	if($existingAttachmentId != null){
+				
+		// 		$this->delete("Attachment", $existingAttachmentId);
+		// 	}
+
+		// 	$attachmentId = $this->insertAttachment($jobId, $files->getFirst());
+			
+		// }
 
 		$resp = new HttpResponse();
 		$resp->addHeader(new HttpHeader("Location", "/jobs"));
 
 		return $resp;
+	}
+
+	public function uploadContentDocument($jobId, $file) {
+
+		$title = $file->getName();
+		$desc = $record->Description;
+		$contentDocumentId = $record->ContentDocumentId;
+		$linkedEntityId = $jobId;
+
+		if($contentDocumentId == null){
+
+			//  Create a new custom "ContentDocument" object by passing in the file, and setting the id's
+			$doc = ContentDocument::fromFile($file);
+			$doc->setLinkedEntityId($linkedEntityId);
+
+			// Handles inserts and updates, for now only uploading one file.
+			$contentDocumentLinkId = $this->insertContentDocument($doc);
+
+		} else if($numberOfFiles > 0 && $contentDocumentId != null){
+
+			//  Create a new custom "ContentDocument" object by passing in the file, and setting the id's
+			$doc = ContentDocument::fromFile($file);
+			$doc->setContentDocumentId($contentDocumentId);
+			$doc->setTitle($title);
+
+			$contentDocumentLinkId = $this->updateContentDocument($doc);
+		}
+
+		return $contentDocumentLinkId;
+	}
+
+	public function insertContentDocument($doc){
+
+		$api = $this->loadForceApi();
+
+		// Use "uploadFile" to upload a file as a Salesforce "ContentVersion" object.  A successful response contains the Id of the "ContentVersion" that was inserted.
+		$resp = $api->uploadFile($doc);
+		$contentVersionId = $resp->getBody()["id"];
+
+		// Use the Id of the response to query for the "ContentVersion" object.  Then get the "ContentDocumentID" from the version.
+		$api = $this->loadForceApi(); // For some reason the request method was stuck on "POST".  I will come back to this.
+		$contentDocumentId = $api->query("SELECT ContentDocumentId FROM ContentVersion WHERE Id = '{$contentVersionId}'")->getRecords()[0]["ContentDocumentId"];
+		
+		// Create a standard class representing a Salesforce "ContentDocumentLink" object setting the "ContentDocumentId" to the Id of the "ContentDocument" that
+		// was created when you inserted the "ContentVersion". 
+
+		// Watch out for duplicates on the link object, because you dont have an Id field
+		$link = new StdClass();
+		$link->contentDocumentId = $contentDocumentId;
+		$link->linkedEntityId = $doc->getLinkedEntityId();
+
+		$resp = $api->upsert("ContentDocumentLink", $link);
+
+		if(!$resp->isSuccess()){
+
+			$message = $resp->getErrorMessage();
+			throw new Exception($message);
+		}
+
+		return $resp->getBody()["id"];
+	}
+
+	public function updateContentDocument($doc){
+
+		$api = $this->loadForceApi();
+
+		// Use "uploadFile" to upload a file as a Salesforce "ContentVersion" object.  A successful response contains the Id of the "ContentVersion" that was inserted.
+		$resp = $api->uploadFile($doc);
+		$contentVersionId = $resp->getBody()["id"];
+
+		if(!$resp->isSuccess()){
+
+			$message = $resp->getErrorMessage();
+			throw new Exception($message);
+		}
+
+		return $resp->getBody()["id"];
 	}
 
 	// Get the FileList" object from the request, use the first file to build an "Attachment/File" object,
@@ -149,17 +232,23 @@ class JobsModule extends Module
 
 	public function getAttachment($id) {
 
+		// Get the attachment object.
 		$api = $this->loadForceApi();
-
-		$results = $api->query("SELECT Id, Name FROM Attachment WHERE Id = '{$id}'");
-
+		$results = $api->query("SELECT Id, Name, Body FROM Attachment WHERE Id = '{$id}'");
 		$attachment = $results->getRecord();
 
-		$resp = $api->getAttachment($id);
+		// Request the file content of the attachment using the blobfield endpoint returned in the "Body" field of the attachment.
+		$endpoint = $attachment["Body"];
+		$req = $this->loadForceApi();
+		$resp = $req->send($endpoint);
 
 		$file = new File($attachment["Name"]);
 		$file->setContent($resp->getBody());
 		$file->setType($resp->getHeader("Content-Type"));
+
+		var_dump($req, $resp);
+
+		exit;
 
 		return $file;
 	}
