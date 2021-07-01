@@ -29,14 +29,43 @@ class JobsModule extends Module
 
 		$jobRecords = $resp->getRecords();
 
+		$updatedJobRecords = $this->getContentDocument($jobRecords);
+
 		$tpl = new ListTemplate("job-list");
 		$tpl->addPath(__DIR__ . "/templates");
 
 		return $tpl->render(array(
-			"jobs" => $jobRecords,
+			"jobs" => $updatedJobRecords,
 			"isAdmin" => true,
 			"isMember" => false // is_authenticated()
 		));
+	}
+
+	public function getContentDocument($jobRecords){
+
+		$updatedJobRecords = array();
+
+		foreach($jobRecords as $job){
+
+			$jobId = $job["Id"];
+			
+			// Get the contentDocumentId
+			$api = $this->loadForceApi();
+			$query = "SELECT ContentDocumentId FROM ContentDocumentLink WHERE LinkedEntityId = '$jobId' LIMIT 1";
+			$contentDocumentId = $api->query($query)->getRecord()["ContentDocumentId"];
+
+			// Get the contentDocument
+			$api = $this->loadForceApi();
+			$query = "SELECT Id, Title FROM ContentDocument WHERE Id = '$contentDocumentId'";
+			$contentDocument = $api->query($query)->getRecord();
+
+			$job["ContentDocument"] = $contentDocument;
+
+			$updatedJobRecords[] = $job;
+		}
+
+
+		return $updatedJobRecords;
 	}
 	
 
@@ -45,13 +74,15 @@ class JobsModule extends Module
 
 		$isEdit = $job == null ? false : true;
 		$attachments = $this->getAttachments($job["Id"]);
+		$updatedJob = $this->getContentDocument(array($job))[0];
+
 		$attachment = $attachments[0];
 
 		$tpl = new Template("job-form");
 		$tpl->addPath(__DIR__ . "/templates");
-
+		
 		return $tpl->render(array(
-			"job" => $job,
+			"job" => $updatedJob,
 			"isEdit" => $isEdit,
 			"attachment" => $attachment
 		));
@@ -69,6 +100,8 @@ class JobsModule extends Module
 
 		$record = $req->getBody();
 		$existingAttachmentId = $record->attachmentId;
+		$existingContentDocumentId = $record->ContentDocumentId;
+		unset($record->ContentDocumentId);
 		unset($record->attachmentId);
 		
 		$record->OpenUntilFilled__c = $record->OpenUntilFilled__c == "" ? False : True;
@@ -82,18 +115,7 @@ class JobsModule extends Module
 
 		$jobId = $resp->getBody()["id"] != null ? $resp->getBody()["id"] : $recordId;
 
-		$contentDocumentId = $this->uploadContentDocument($jobId, $files->getFirst());
-
-		// if($numberOfFiles > 0){
-			
-		// 	if($existingAttachmentId != null){
-				
-		// 		$this->delete("Attachment", $existingAttachmentId);
-		// 	}
-
-		// 	$attachmentId = $this->insertAttachment($jobId, $files->getFirst());
-			
-		// }
+		$contentDocumentLinkId = $this->uploadContentDocument($jobId, $existingContentDocumentId, $files->getFirst());
 
 		$resp = new HttpResponse();
 		$resp->addHeader(new HttpHeader("Location", "/jobs"));
@@ -101,12 +123,9 @@ class JobsModule extends Module
 		return $resp;
 	}
 
-	public function uploadContentDocument($jobId, $file) {
+	public function uploadContentDocument($linkedEntityId, $contentDocumentId, $file) {
 
 		$title = $file->getName();
-		$desc = $record->Description;
-		$contentDocumentId = $record->ContentDocumentId;
-		$linkedEntityId = $jobId;
 
 		if($contentDocumentId == null){
 
@@ -117,12 +136,11 @@ class JobsModule extends Module
 			// Handles inserts and updates, for now only uploading one file.
 			$contentDocumentLinkId = $this->insertContentDocument($doc);
 
-		} else if($numberOfFiles > 0 && $contentDocumentId != null){
+		} else if($contentDocumentId != null){
 
 			//  Create a new custom "ContentDocument" object by passing in the file, and setting the id's
 			$doc = ContentDocument::fromFile($file);
 			$doc->setContentDocumentId($contentDocumentId);
-			$doc->setTitle($title);
 
 			$contentDocumentLinkId = $this->updateContentDocument($doc);
 		}
@@ -178,28 +196,6 @@ class JobsModule extends Module
 		return $resp->getBody()["id"];
 	}
 
-	// Get the FileList" object from the request, use the first file to build an "Attachment/File" object,
-	// insert the Attachment, and return the id.
-	public function insertAttachment($jobId, $file){
-
-		if($jobId == null) throw new Exception("ERROR_ADDING_ATTACHMENT:  The job id can not be null when adding attachments.");
-
-		$fileClass = "Salesforce\Attachment";
-
-		$file = $fileClass::fromFile($file);
-		$file->setParentId($jobId);
-
-		$api = $this->loadForceApi();
-
-		$resp = $api->uploadFile($file);
-
-		if(!$resp->isSuccess()) throw new Exception($resp->getErrorMessage());
-
-		$attachment = $fileClass::fromArray($resp->getBody());
-
-		return $attachment->Id;
-	}
-
 	public function edit($id){
 
 		$api = $this->loadForceApi();
@@ -219,6 +215,45 @@ class JobsModule extends Module
 		$resp->addHeader(new HttpHeader("Location", "/jobs"));
 
 		return $resp;
+	}
+
+	public function downloadContentDocument($id){
+
+		$api = $this->loadForceApi();
+
+		$veriondataQuery = "SELECT Versiondata from ContentVersion WHERE ContentDocumentId = '$id' AND IsLatest = true";
+
+		$versionData = $api->query($veriondataQuery)->getRecord()["VersionData"];
+
+		$api2 = $this->loadForceApi();
+		$resp = $api2->send($versionData);
+
+		var_dump($api2, $resp);exit;
+
+	}
+
+	/////////////////////////	ATTACHMENT STUFF	////////////////////////////////////////////////////////////////////////
+
+		// Get the FileList" object from the request, use the first file to build an "Attachment/File" object,
+	// insert the Attachment, and return the id.
+	public function insertAttachment($jobId, $file){
+
+		if($jobId == null) throw new Exception("ERROR_ADDING_ATTACHMENT:  The job id can not be null when adding attachments.");
+
+		$fileClass = "Salesforce\Attachment";
+
+		$file = $fileClass::fromFile($file);
+		$file->setParentId($jobId);
+
+		$api = $this->loadForceApi();
+
+		$resp = $api->uploadFile($file);
+
+		if(!$resp->isSuccess()) throw new Exception($resp->getErrorMessage());
+
+		$attachment = $fileClass::fromArray($resp->getBody());
+
+		return $attachment->Id;
 	}
 
 	public function getAttachments($jobId) {

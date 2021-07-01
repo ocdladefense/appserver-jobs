@@ -36,6 +36,10 @@
 		"attachment/%id":{
 			"callback": "getAttachment",
 			"content-type": "application/base64"
+		},
+		"contentDocument/%id":{
+			"callback": "downloadContentDocument",
+			"content-type": "application/base64"
 		}
 	}
 }
