@@ -221,15 +221,20 @@ class JobsModule extends Module
 
 		$api = $this->loadForceApi();
 
-		$veriondataQuery = "SELECT Versiondata from ContentVersion WHERE ContentDocumentId = '$id' AND IsLatest = true";
+		$veriondataQuery = "SELECT Versiondata, Title, ContentDocumentId from ContentVersion WHERE ContentDocumentId = '$id' AND IsLatest = true";
 
-		$versionData = $api->query($veriondataQuery)->getRecord()["VersionData"];
+		$contentVersion = $api->query($veriondataQuery)->getRecord();
+		$versionData = $contentVersion["VersionData"];
 
 		$api2 = $this->loadForceApi();
+		$api2->removeXHttpClientHeader();
 		$resp = $api2->send($versionData);
 
-		var_dump($api2, $resp);exit;
+		$file = new File($contentVersion["Title"]);
+		$file->setContent($resp->getBody());
+		$file->setType($resp->getHeader("Content-Type"));
 
+		return $file;
 	}
 
 	/////////////////////////	ATTACHMENT STUFF	////////////////////////////////////////////////////////////////////////
@@ -275,15 +280,12 @@ class JobsModule extends Module
 		// Request the file content of the attachment using the blobfield endpoint returned in the "Body" field of the attachment.
 		$endpoint = $attachment["Body"];
 		$req = $this->loadForceApi();
+		$req->removeXHttpClientHeader();
 		$resp = $req->send($endpoint);
 
 		$file = new File($attachment["Name"]);
 		$file->setContent($resp->getBody());
 		$file->setType($resp->getHeader("Content-Type"));
-
-		var_dump($req, $resp);
-
-		exit;
 
 		return $file;
 	}
