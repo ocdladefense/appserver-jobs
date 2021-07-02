@@ -227,7 +227,6 @@ class JobsModule extends Module
 		$versionData = $contentVersion["VersionData"];
 
 		$api2 = $this->loadForceApi();
-		$api2->removeXHttpClientHeader();
 		$resp = $api2->send($versionData);
 
 		$file = new File($contentVersion["Title"]);
