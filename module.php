@@ -221,7 +221,7 @@ class JobsModule extends Module
 
 		$api = $this->loadForceApi();
 
-		$veriondataQuery = "SELECT Versiondata, Title, ContentDocumentId from ContentVersion WHERE ContentDocumentId = '$id' AND IsLatest = true";
+		$veriondataQuery = "SELECT Versiondata, Title FROM ContentVersion WHERE ContentDocumentId = '$id' AND IsLatest = true";
 
 		$contentVersion = $api->query($veriondataQuery)->getRecord();
 		$versionData = $contentVersion["VersionData"];
