@@ -43,29 +43,79 @@ class JobsModule extends Module
 
 	public function getContentDocument($jobRecords){
 
-		$updatedJobRecords = array();
-
+		// Get the job ids as a comma seperated string.
+		$jobIds = array();
 		foreach($jobRecords as $job){
 
-			$jobId = $job["Id"];
-			
-			// Get the contentDocumentId
-			$api = $this->loadForceApi();
-			$query = "SELECT ContentDocumentId FROM ContentDocumentLink WHERE LinkedEntityId = '$jobId' LIMIT 1";
-			$contentDocumentId = $api->query($query)->getRecord()["ContentDocumentId"];
+			$jobIds[] = $job["Id"];
+		}
 
-			// Get the contentDocument
-			$api = $this->loadForceApi();
-			$query = "SELECT Id, Title FROM ContentDocument WHERE Id = '$contentDocumentId'";
-			$contentDocument = $api->query($query)->getRecord();
+		$links = $this->getContentDocumentLinks($jobIds);
 
-			$job["ContentDocument"] = $contentDocument;
+		$contentVersions = $this->getContentDocumentIds($links);
+
+
+		// Add the contentVersion to the job array at the index of "ContentDocument" if there is a contentversion.
+		$updatedJobRecords = array();
+		foreach($jobRecords as $job){
+
+			foreach($links as $link){
+
+				if($link["LinkedEntityId"] == $job["Id"]){
+
+					foreach($contentVersions as $conDoc){
+
+						// This is a cheat. 
+						$conDoc["Id"] = $conDoc["ContentDocumentId"];
+
+						if($conDoc["ContentDocumentId"] == $link["ContentDocumentId"]){
+
+							$job["ContentDocument"] = $conDoc;
+
+						}
+					}
+				}
+			}
 
 			$updatedJobRecords[] = $job;
 		}
 
-
 		return $updatedJobRecords;
+	}
+
+	public function getContentDocumentLinks($jobIds){
+
+		$jobIdString = "'" . implode("','", $jobIds) . "'";
+
+
+		$api = $this->loadForceApi();
+		$query = "SELECT ContentDocumentId, LinkedEntityId FROM ContentDocumentLink WHERE LinkedEntityId IN ($jobIdString)";
+		$resp = $api->query($query);
+
+		if(!$resp->isSuccess()) throw new Exception($resp->getErrorMessage());
+
+		return $resp->getRecords();
+	}
+
+	public function getContentDocumentIds($links){
+
+		$contentDocumentIds = array();
+		foreach($links as $link){
+
+			$contentDocumentIds[] = $link["ContentDocumentId"];
+		}
+
+		$conDocIdString = "'" . implode("','", $contentDocumentIds) . "'";
+
+
+		// Get the contentVersions
+		$api = $this->loadForceApi();
+		$query = "SELECT Id, Title, isLatest, ContentDocumentId FROM ContentVersion WHERE contentDocumentId IN ($conDocIdString) AND IsLatest = true";
+		$resp = $api->query($query);
+
+		if(!$resp->isSuccess()) throw new Exception($resp->getErrorMessage());
+
+		return $resp->getRecords();
 	}
 	
 
@@ -116,7 +166,7 @@ class JobsModule extends Module
 		$jobId = $resp->getBody()["id"] != null ? $resp->getBody()["id"] : $recordId;
 
 		if($numberOfFiles > 0) {
-			
+
 			$contentDocumentLinkId = $this->uploadContentDocument($jobId, $existingContentDocumentId, $files->getFirst());
 		}
 
@@ -188,6 +238,7 @@ class JobsModule extends Module
 
 		// Use "uploadFile" to upload a file as a Salesforce "ContentVersion" object.  A successful response contains the Id of the "ContentVersion" that was inserted.
 		$resp = $api->uploadFile($doc);
+
 		$contentVersionId = $resp->getBody()["id"];
 
 		if(!$resp->isSuccess()){
