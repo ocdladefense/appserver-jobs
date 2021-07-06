@@ -2,7 +2,12 @@
 $classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
 
 $hasAttachment = $attachment != null;
-if($hasAttachment){
+
+$contentDocument = $job["ContentDocument"];
+$hasContentDocument = $contentDocument != null;
+
+
+if($hasAttachment || $hasContentDocument){
 	
 	$classNames .= " has-attachment ";
 }
@@ -139,6 +144,13 @@ if($hasAttachment){
 				<strong>Uploaded Attachments</strong><br />
 				<a class="toggle-file-upload" href="#" onclick="toggleFileUploadElement(); return false;">Edit</a>
 				<label><?php print $attachment["Name"] ?></label><br />
+			</div>
+		<?php elseif($hasContentDocument): ?>
+			<input type="hidden" name="ContentDocumentId" id="ContentDocumentId" value="<?php print $contentDocument["Id"]; ?>" />
+			<div id="existing-attachments">
+				<strong>Uploaded Attachments</strong><br />
+				<a class="toggle-file-upload" href="#" onclick="toggleFileUploadElement(); return false;">Edit</a>
+				<label><?php print $contentDocument["Title"] ?></label><br />
 			</div>
 		<?php endif; ?>
 			<div id="uploader">

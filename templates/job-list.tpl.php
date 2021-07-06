@@ -45,6 +45,10 @@
 				$attachedSObject = $job["Attachments"]["records"][0];
 				$docName = $attachedSObject["Name"];
 				$hasAttachment = $attachedSObject != null;
+
+				$contentDocument = $job["ContentDocument"];
+				$hasContentDocument = $contentDocument != null;
+
 				
 				if($hasAttachment) {
 					$parts = explode(".", $docName);
@@ -82,6 +86,10 @@
 					<?php if($hasAttachment): ?>
 						<a title="<?php print $docName; ?>" target="_blank" href="/attachment/<?php print $attachedSObject["Id"]; ?>">
 							<?php print $filename; ?>
+						</a>
+					<?php elseif($hasContentDocument): ?>
+						<a title="<?php print $contentDocument["Title"]; ?>" target="_blank" href="/contentdocument/<?php print $contentDocument["Id"]; ?>">
+							<?php print $contentDocument["Title"]; ?>
 						</a>
 					<?php endif; ?>
 				</li>
