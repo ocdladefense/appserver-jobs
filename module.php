@@ -36,7 +36,7 @@ class JobsModule extends Module
 
 		return $tpl->render(array(
 			"jobs" => $updatedJobRecords,
-			"isAdmin" => true,
+			"isAdmin" => false,
 			"isMember" => false // is_authenticated()
 		));
 	}
@@ -287,5 +287,10 @@ class JobsModule extends Module
 		$file->setType($resp->getHeader("Content-Type"));
 
 		return $file;
+	}
+
+	public function testFunction(){
+
+		get_user_info();
 	}
 }
