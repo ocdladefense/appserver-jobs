@@ -36,7 +36,7 @@ class JobsModule extends Module
 
 		return $tpl->render(array(
 			"jobs" => $updatedJobRecords,
-			"isAdmin" => false,
+			"isAdmin" => true,
 			"isMember" => false // is_authenticated()
 		));
 	}
@@ -115,7 +115,10 @@ class JobsModule extends Module
 
 		$jobId = $resp->getBody()["id"] != null ? $resp->getBody()["id"] : $recordId;
 
-		$contentDocumentLinkId = $this->uploadContentDocument($jobId, $existingContentDocumentId, $files->getFirst());
+		if($numberOfFiles > 0) {
+			
+			$contentDocumentLinkId = $this->uploadContentDocument($jobId, $existingContentDocumentId, $files->getFirst());
+		}
 
 		$resp = new HttpResponse();
 		$resp->addHeader(new HttpHeader("Location", "/jobs"));
