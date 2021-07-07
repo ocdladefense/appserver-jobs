@@ -9,6 +9,7 @@ use Http\HttpRequest;
 use Salesforce\ContentDocument;
 use function Session\get_current_user;
 use function Session\user_is_admin;
+use function Session\user_is_member;
 
 
 class JobsModule extends Module
@@ -36,15 +37,20 @@ class JobsModule extends Module
 		$tpl = new ListTemplate("job-list");
 		$tpl->addPath(__DIR__ . "/templates");
 
-		$user = get_current_user();
+		// Get the name of the connected app config
+		$connectedAppSetting = $this->getInfo()["connectedApp"];
+		$connectedAppName = get_oauth_config($connectedAppSetting)->getName();
 
-		$admin = user_is_admin($user);
-		// $member = $user->isMember();
+		// Get the user info
+		$user = get_current_user($connectedAppName, "webserver");
+
+		$isAdmin = user_is_admin($user);
+		$isMember = user_is_member($user);
 
 		return $tpl->render(array(
 			"jobs" => $updatedJobRecords,
-			"isAdmin" => $admin,
-			"isMember" => false // is_authenticated()
+			"isAdmin" => $isAdmin,
+			"isMember" => $isMember
 		));
 	}
 
