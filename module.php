@@ -207,14 +207,14 @@ class JobsModule extends Module
 
 	public function insertContentDocument($doc){
 
-		$api = $this->loadForceApi();
+		$api = $this->loadForceApi(null, true);
 
 		// Use "uploadFile" to upload a file as a Salesforce "ContentVersion" object.  A successful response contains the Id of the "ContentVersion" that was inserted.
 		$resp = $api->uploadFile($doc);
 		$contentVersionId = $resp->getBody()["id"];
 
 		// Use the Id of the response to query for the "ContentVersion" object.  Then get the "ContentDocumentID" from the version.
-		$api = $this->loadForceApi(); // For some reason the request method was stuck on "POST".  I will come back to this.
+		$api = $this->loadForceApi(null, true);
 		$contentDocumentId = $api->query("SELECT ContentDocumentId FROM ContentVersion WHERE Id = '{$contentVersionId}'")->getRecords()[0]["ContentDocumentId"];
 		
 		// Create a standard class representing a Salesforce "ContentDocumentLink" object setting the "ContentDocumentId" to the Id of the "ContentDocument" that
@@ -239,7 +239,7 @@ class JobsModule extends Module
 
 	public function updateContentDocument($doc){
 
-		$api = $this->loadForceApi();
+		$api = $this->loadForceApi(null, true);
 
 		// Use "uploadFile" to upload a file as a Salesforce "ContentVersion" object.  A successful response contains the Id of the "ContentVersion" that was inserted.
 		$resp = $api->uploadFile($doc);
