@@ -8,8 +8,6 @@ use Http\Http;
 use Http\HttpRequest;
 use Salesforce\ContentDocument;
 use function Session\get_current_user;
-use function Session\user_is_admin;
-use function Session\user_is_member;
 
 
 class JobsModule extends Module
@@ -24,7 +22,7 @@ class JobsModule extends Module
 
 		$api = $this->loadForceApi();
 		
-		$query = "SELECT Id, Name, Salary__c, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c ORDER BY PostingDate__c DESC";
+		$query = "SELECT Id, Name, Salary__c, CreatedById, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c ORDER BY PostingDate__c DESC";
 		
 		$resp = $api->query($query);
 
@@ -37,20 +35,11 @@ class JobsModule extends Module
 		$tpl = new ListTemplate("job-list");
 		$tpl->addPath(__DIR__ . "/templates");
 
-		// Get the name of the connected app config
-		$connectedAppSetting = $this->getInfo()["connectedApp"];
-		$connectedAppName = get_oauth_config($connectedAppSetting)->getName();
-
-		// Get the user info
-		$user = get_current_user($connectedAppName, "webserver");
-
-		$isAdmin = user_is_admin($user);
-		$isMember = user_is_member($user);
+		$user = get_current_user();
 
 		return $tpl->render(array(
 			"jobs" => $updatedJobRecords,
-			"isAdmin" => $isAdmin,
-			"isMember" => $isMember
+			"user" => $user
 		));
 	}
 
@@ -155,6 +144,8 @@ class JobsModule extends Module
 	// Gets form data from the request, inserts or updates a "Job__c" object, and returns the Id of the object.
 	public function createPosting() {
 
+		$doUploadFiles = true;
+
 		$sobjectName = "Job__c";
 		$req = $this->getRequest();
 
@@ -178,7 +169,7 @@ class JobsModule extends Module
 
 		$jobId = $resp->getBody()["id"] != null ? $resp->getBody()["id"] : $recordId;
 
-		if($numberOfFiles > 0) {
+		if($numberOfFiles > 0 && $doUploadFiles) {
 
 			$contentDocumentLinkId = $this->uploadContentDocument($jobId, $existingContentDocumentId, $files->getFirst());
 		}
@@ -233,6 +224,7 @@ class JobsModule extends Module
 		$link = new StdClass();
 		$link->contentDocumentId = $contentDocumentId;
 		$link->linkedEntityId = $doc->getLinkedEntityId();
+		$link->visibility = "AllUsers";
 
 		$resp = $api->upsert("ContentDocumentLink", $link);
 

@@ -22,7 +22,7 @@
 	<tbody>
 
 		<ul class="table-row">
-			<?php if($isAdmin || $isMember): ?>
+			<?php if($user->isAdmin() || $user->isMember()): ?>
 				<li class='table-header'>Actions</li>
 			<?php endif ?>
 			<li class="table-header">Title</li>
@@ -61,11 +61,14 @@
 				}
 			?>
 			<ul class="table-row"> 
-				<?php if($isAdmin || $isMember): ?>
+				<?php if($user->isAdmin() || $user->isOwner($job)): ?>
 					<li class="table-cell cart-first">
 						<a href="/job/edit/<?php print $job["Id"]; ?>">Edit</a>
 						<a href="/job/delete/Job__c/<?php print $job["Id"]; ?>">Delete</a>
 					</li>
+				<?php endif ?>
+				<?php if((!$user->isAdmin() && $user->isMember()) && !$user->isOwner($job)): ?>
+					<li class="table-cell cart-first"></li>
 				<?php endif ?>
 				<li class="table-cell cart-middle"><?php print $job["Name"]; ?></li>
 				<li class="table-cell cart-middle"><?php print $job["PostingDate__c"]; ?></li>
