@@ -20,9 +20,25 @@ class JobsModule extends Module
 
 	public function home() {
 
+		$user = get_current_user();
+
 		$api = $this->loadForceApi();
+
+		$today = new DateTime();
+		$removalDate = $today->modify("-3 days");
+		$removalDate = $removalDate->format("Y-m-d");
+
+		$today = new DateTime();
+		$openUntilFilledDeadline = $today->modify("-42 days");
+		$openUntilFilledDeadline = $openUntilFilledDeadline->format("Y-m-d");
+
 		
-		$query = "SELECT Id, Name, Salary__c, CreatedById, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c ORDER BY PostingDate__c DESC";
+		$query = "SELECT Id, Name, Salary__c, CreatedById, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c";
+		
+		if(!$user->isAdmin()) $query .= " WHERE IsActive__c = true AND ((OpenUntilFilled__c = false AND ClosingDate__c < $removalDate) OR (OpenUntilFilled__c = true AND postingDate__c < $openUntilFilledDeadline))";
+
+		$query .= " ORDER BY PostingDate__c DESC";
+
 		
 		$resp = $api->query($query);
 
@@ -35,7 +51,7 @@ class JobsModule extends Module
 		$tpl = new ListTemplate("job-list");
 		$tpl->addPath(__DIR__ . "/templates");
 
-		$user = get_current_user();
+
 
 		return $tpl->render(array(
 			"jobs" => $updatedJobRecords,
