@@ -207,6 +207,7 @@ class JobsModule extends Module
 
 	public function insertContentDocument($doc){
 
+		// Pass true as the second parameter to force the usernamepassword flow.
 		$api = $this->loadForceApi(null, true);
 
 		// Use "uploadFile" to upload a file as a Salesforce "ContentVersion" object.  A successful response contains the Id of the "ContentVersion" that was inserted.

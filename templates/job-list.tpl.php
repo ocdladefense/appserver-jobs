@@ -48,6 +48,7 @@
 
 				$contentDocument = $job["ContentDocument"];
 				$hasContentDocument = $contentDocument != null;
+				$userCreatedJob = $job["CreatedById"] == $user->getId();
 
 				
 				if($hasAttachment) {
@@ -61,13 +62,13 @@
 				}
 			?>
 			<ul class="table-row"> 
-				<?php if($user->isAdmin() || $user->isOwner($job)): ?>
+				<?php if($user->isAdmin() || $userCreatedJob): ?>
 					<li class="table-cell cart-first">
 						<a href="/job/edit/<?php print $job["Id"]; ?>">Edit</a>
 						<a href="/job/delete/Job__c/<?php print $job["Id"]; ?>">Delete</a>
 					</li>
 				<?php endif ?>
-				<?php if((!$user->isAdmin() && $user->isMember()) && !$user->isOwner($job)): ?>
+				<?php if((!$user->isAdmin() && $user->isMember()) && !$userCreatedJob): ?>
 					<li class="table-cell cart-first"></li>
 				<?php endif ?>
 				<li class="table-cell cart-middle"><?php print $job["Name"]; ?></li>
