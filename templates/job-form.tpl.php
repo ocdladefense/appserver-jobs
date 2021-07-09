@@ -61,6 +61,10 @@ if($hasAttachment || $hasContentDocument){
 			padding: 0;
 			width: auto;
 	}
+
+	div#sidenav {
+    display: none;
+}
  
 
 	@media screen and (min-width:800px) {
