@@ -35,7 +35,7 @@ class JobsModule extends Module
 		
 		$query = "SELECT Id, Name, Salary__c, CreatedById, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c";
 		
-		if(!$user->isAdmin()) $query .= " WHERE IsActive__c = true AND ((OpenUntilFilled__c = false AND ClosingDate__c < $removalDate) OR (OpenUntilFilled__c = true AND postingDate__c < $openUntilFilledDeadline))";
+		if(!$user->isAdmin()) $query .= " WHERE IsActive__c = true AND ((OpenUntilFilled__c = false AND ClosingDate__c >= $removalDate) OR (OpenUntilFilled__c = true AND postingDate__c >= $openUntilFilledDeadline))";
 
 		$query .= " ORDER BY PostingDate__c DESC";
 
