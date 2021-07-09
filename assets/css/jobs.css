@@ -17,6 +17,9 @@ a, i{
     text-align:center;
 }
 
+div#sidenav {
+    display: none;
+}
 @media screen and (max-width: 750px) {
 
 }
