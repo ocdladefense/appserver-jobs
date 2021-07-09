@@ -1,18 +1,3 @@
-.table-headers {
-    display: none;
-}
-
-li.table-cell {
-list-style: none;
-padding-right: 15px;
-padding-left: 15px;
-}
-
-@media screen and (min-width: 800px) {
-    .table-headers {
-        display: table-row;
-    }
-}
 
 @media screen and (max-width: 750px) {
     ul.table-row {
