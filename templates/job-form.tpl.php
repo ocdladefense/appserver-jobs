@@ -1,5 +1,9 @@
 <?php
-$classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
+$classNames = array();
+
+$toggleClosingDateClass = $job["OpenUntilFilled__c"] ? "hidden" : "";
+
+$isOpenUntilFilled = $job["OpenUntilFilled__c"] ? "checked" : "";
 
 $hasAttachment = $attachment != null;
 
@@ -16,9 +20,6 @@ if($hasAttachment || $hasContentDocument){
 
 <!--CSS to toggle closing date-->
 <style>
-	.open-until-filled #closingDate {
-		display: none;
-	}
 
 
 	label {
@@ -62,9 +63,13 @@ if($hasAttachment || $hasContentDocument){
 			width: auto;
 	}
 
-	div#sidenav {
-    display: none;
-}
+	.sidenav {
+    	display: none;
+	}
+
+	.hidden{
+		display:none;
+	}
  
 
 	@media screen and (min-width:800px) {
@@ -112,15 +117,15 @@ if($hasAttachment || $hasContentDocument){
 
 
 
-	<div id="closingDate" class="form-item">
+	<div id="closing-date" class="form-item <?php print $toggleClosingDateClass; ?>">
 		<!--beginning closingdate field-->
 		<label for="ClosingDate__c">Closing Date</label><br />
 		<input type="date" name="ClosingDate__c" id="ClosingDate__c" value="<?php print $job["ClosingDate__c"]; ?>" placeholder="Enter the closing date." />
 	</div>
 
-	<div class="form-item">
+	<div id="open-until-filled" class="form-item">
 		Open until filled?
-		<input type="checkbox" name="OpenUntilFilled__c" onchange="toggleClosingDate()" value="1" checked />
+		<input type="checkbox" name="OpenUntilFilled__c" value="1" <?php print $isOpenUntilFilled; ?> />
 	</div>
 
 
@@ -159,12 +164,14 @@ if($hasAttachment || $hasContentDocument){
 </form>
 
 <script>
-	function toggleClosingDate(){
 
-		let elem = document.getElementById("closingDate");
+	let closingDate = document.getElementById("closing-date");
+	let checkbox = document.getElementById("open-until-filled");
+	checkbox.addEventListener("change", hideClosingDate);
 
-		elem.classList.toggle("hide-element");
-		elem.setAttribute("value", "");
+	function hideClosingDate(e){
+
+		closingDate.classList.toggle("hidden");
 	}
 
 	function toggleFileUploadElement(e){
