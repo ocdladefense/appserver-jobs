@@ -27,6 +27,10 @@ li.table-cell.title {
     width: 412px;
 }
 
+#job-postings{
+    width:100%;
+}
+
 @media screen and (max-width: 750px) {
     ul.table-row {
         display: block;
