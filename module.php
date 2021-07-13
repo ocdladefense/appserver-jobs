@@ -175,8 +175,12 @@ class JobsModule extends Module
 		unset($record->attachmentId);
 		
 		$record->OpenUntilFilled__c = $record->OpenUntilFilled__c == "" ? False : True;
-		if($record->OpenUntilFilled__c == true || $record->ClosingDate__c == "") unset($record->ClosingDate__c);
-		
+		if($record->OpenUntilFilled__c == true || $record->ClosingDate__c == ""){
+
+			unset($record->ClosingDate__c);
+			$record->OpenUntilFilled__c == true;
+		}
+
 		$record->IsActive__c = True;
 		$recordId = $record->Id;
 
