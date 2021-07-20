@@ -1,3 +1,8 @@
+p {
+	margin-top: 15px;
+}
+
+
 .table-headers {
     display: none;
 }
@@ -25,10 +30,6 @@ li.table-cell.date {
 
 li.table-cell.title {
     width: 412px;
-}
-
-#job-postings{
-    width:100%;
 }
 
 @media screen and (max-width: 750px) {
