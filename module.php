@@ -20,9 +20,25 @@ class JobsModule extends Module
 
 	public function home() {
 
+		$user = get_current_user();
+
 		$api = $this->loadForceApi();
+
+		$today = new DateTime();
+		$removalDate = $today->modify("-3 days");
+		$removalDate = $removalDate->format("Y-m-d");
+
+		$today = new DateTime();
+		$openUntilFilledDeadline = $today->modify("-42 days");
+		$openUntilFilledDeadline = $openUntilFilledDeadline->format("Y-m-d");
+
 		
-		$query = "SELECT Id, Name, Salary__c, CreatedById, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c ORDER BY PostingDate__c DESC";
+		$query = "SELECT Id, Name, Salary__c, CreatedById, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, (SELECT Id, Name FROM Attachments) FROM Job__c";
+		
+		if(!$user->isAdmin()) $query .= " WHERE IsActive__c = true AND ((OpenUntilFilled__c = false AND ClosingDate__c >= $removalDate) OR (OpenUntilFilled__c = true AND postingDate__c >= $openUntilFilledDeadline))";
+
+		$query .= " ORDER BY PostingDate__c DESC";
+
 		
 		$resp = $api->query($query);
 
@@ -35,7 +51,7 @@ class JobsModule extends Module
 		$tpl = new ListTemplate("job-list");
 		$tpl->addPath(__DIR__ . "/templates");
 
-		$user = get_current_user();
+
 
 		return $tpl->render(array(
 			"jobs" => $updatedJobRecords,
@@ -159,6 +175,12 @@ class JobsModule extends Module
 		unset($record->attachmentId);
 		
 		$record->OpenUntilFilled__c = $record->OpenUntilFilled__c == "" ? False : True;
+		if($record->OpenUntilFilled__c == true || empty($record->ClosingDate__c)){
+
+			unset($record->ClosingDate__c);
+			$record->OpenUntilFilled__c = true;
+		}
+
 		$record->IsActive__c = True;
 		$recordId = $record->Id;
 
@@ -207,14 +229,15 @@ class JobsModule extends Module
 
 	public function insertContentDocument($doc){
 
-		$api = $this->loadForceApi();
+		// Pass true as the second parameter to force the usernamepassword flow.
+		$api = $this->loadForceApiFromFlow("usernamepassword");
 
 		// Use "uploadFile" to upload a file as a Salesforce "ContentVersion" object.  A successful response contains the Id of the "ContentVersion" that was inserted.
 		$resp = $api->uploadFile($doc);
 		$contentVersionId = $resp->getBody()["id"];
 
 		// Use the Id of the response to query for the "ContentVersion" object.  Then get the "ContentDocumentID" from the version.
-		$api = $this->loadForceApi(); // For some reason the request method was stuck on "POST".  I will come back to this.
+		$api = $this->loadForceApiFromFlow("usernamepassword");
 		$contentDocumentId = $api->query("SELECT ContentDocumentId FROM ContentVersion WHERE Id = '{$contentVersionId}'")->getRecords()[0]["ContentDocumentId"];
 		
 		// Create a standard class representing a Salesforce "ContentDocumentLink" object setting the "ContentDocumentId" to the Id of the "ContentDocument" that
@@ -239,7 +262,7 @@ class JobsModule extends Module
 
 	public function updateContentDocument($doc){
 
-		$api = $this->loadForceApi();
+		$api = $this->loadForceApiFromFlow("usernamepassword");
 
 		// Use "uploadFile" to upload a file as a Salesforce "ContentVersion" object.  A successful response contains the Id of the "ContentVersion" that was inserted.
 		$resp = $api->uploadFile($doc);

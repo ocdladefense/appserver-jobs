@@ -1,25 +1,46 @@
+p {
+	margin-top: 15px;
+}
+
+
 .table-headers {
     display: none;
 }
 
 li.table-cell {
-list-style: none;
-padding-right: 15px;
-padding-left: 15px;
+    list-style: none;
+    vertical-align:middle;
 }
 
-@media screen and (min-width: 800px) {
-    .table-headers {
-        display: table-row;
-    }
+div#sidenav {
+    display: none;
 }
 
-@media screen and (max-width: 750px) {
+.table-headers {
+    display: table-row;
+}
+
+li.table-cell.admin-area {
+    width: 80px;
+}
+
+li.table-cell.date {
+    width: 140px;
+}
+
+li.table-cell.title {
+    width: 412px;
+}
+li.table-cell {
+    min-width: 150px;
+}
+
+@media screen and (max-width: 768px) {
     ul.table-row {
         display: block;
-        background-color: lightgray;
         margin-bottom: 10px;
         padding: 5px 0 5px 0;
+        border-bottom: solid 1px #ccc;
     }
     .table-header{
         display:none;

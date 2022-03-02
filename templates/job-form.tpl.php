@@ -1,5 +1,9 @@
 <?php
-$classNames = $job["OpenUntilFilled__c"] ? "open-until-filled" : "";
+$classNames = array();
+
+$toggleClosingDateClass = $job["OpenUntilFilled__c"] ? "hidden" : "";
+
+$isOpenUntilFilled = $job["OpenUntilFilled__c"] ? "checked" : "";
 
 $hasAttachment = $attachment != null;
 
@@ -16,9 +20,6 @@ if($hasAttachment || $hasContentDocument){
 
 <!--CSS to toggle closing date-->
 <style>
-	.open-until-filled #closingDate {
-		display: none;
-	}
 
 
 	label {
@@ -61,6 +62,14 @@ if($hasAttachment || $hasContentDocument){
 			padding: 0;
 			width: auto;
 	}
+
+	.sidenav {
+    	display: none;
+	}
+
+	.hidden{
+		display:none;
+	}
  
 
 	@media screen and (min-width:800px) {
@@ -73,6 +82,9 @@ if($hasAttachment || $hasContentDocument){
 		}
 	}
 </style>
+
+
+
 
 <form enctype="multipart/form-data" onsubmit="onSubmit();" class="<?php print $classNames; ?>" id="jobs-form" name="form-jobs" method="post" action="/jobs/create">
 
@@ -105,33 +117,16 @@ if($hasAttachment || $hasContentDocument){
 
 
 
-	<div id="closingDate" class="form-item">
+	<div id="closing-date" class="form-item <?php print $toggleClosingDateClass; ?>">
 		<!--beginning closingdate field-->
 		<label for="ClosingDate__c">Closing Date</label><br />
 		<input type="date" name="ClosingDate__c" id="ClosingDate__c" value="<?php print $job["ClosingDate__c"]; ?>" placeholder="Enter the closing date." />
 	</div>
 
-
-	<div class="form-item" onclick="handleCheck()">
-		<label for="OpenUntilFilled__c">Open Until Filled?</label>&nbsp&nbsp
-		<?php if ($job["OpenUntilFilled__c"] == true) : ?>
-			<input type="checkbox" name="OpenUntilFilledHelper__c" id="OpenUntilFilledHelper__c" value="true" checked />
-		<?php else : ?>
-			<input type="checkbox" name="OpenUntilFilledHelper__c" id="OpenUntilFilledHelper__c" value="true" />
-		<?php endif; ?>
+	<div id="open-until-filled" class="form-item">
+		Open until filled?
+		<input type="checkbox" name="OpenUntilFilled__c" value="1" <?php print $isOpenUntilFilled; ?> />
 	</div>
-	<?php if ($job["OpenUntilFilled__c"] == true) : ?>
-		<input type="hidden" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="true" />
-	<?php else : ?>
-		<input type="hidden" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="false" />
-	<?php endif; ?>
-	
-	<div class="form-item">
-		<input type="hidden" name="OpenUntilFilled__c" id="OpenUntilFilled__c" value="" />
-	</div>
-
-
-
 
 
 
@@ -169,39 +164,20 @@ if($hasAttachment || $hasContentDocument){
 </form>
 
 <script>
-	function onSubmit() {
-		this.openUntilFilled = document.getElementById('OpenUntilFilledHelper__c');
-		this.openUntilFilled.disabled = true;
+
+	let closingDate = document.getElementById("closing-date");
+	let checkbox = document.getElementById("open-until-filled");
+	checkbox.addEventListener("change", hideClosingDate);
+
+	function hideClosingDate(e){
+
+		closingDate.classList.toggle("hidden");
 	}
+
 	function toggleFileUploadElement(e){
 		console.log(e);
 		let theForm = document.getElementById("jobs-form");
 		let hasExisting = theForm.classList.contains("has-attachment");
 		theForm.classList.toggle("has-attachment");
-	}
-
-	//*JavaScript function to toggle closing date in form view*//
-	function handleCheck() {
-
-		//*Variables*//
-		this.jobsForm = document.getElementById('jobs-form');
-		this.openUntilFilledHelper = document.getElementById('OpenUntilFilledHelper__c');
-		this.openUntilFilled = document.getElementById('OpenUntilFilled__c');
-		this.closingDate = document.getElementById("ClosingDate__c");
-		this.isChecked = this.openUntilFilledHelper.checked;
-
-
-		if (isChecked) {
-			this.jobsForm.classList.add('open-until-filled');
-			this.closingDate.disabled = true;
-			//0 out closing date field
-			this.openUntilFilled.value = "true";
-
-
-		} else {
-			this.jobsForm.classList.remove('open-until-filled');
-			this.closingDate.disabled = false;
-			this.openUntilFilled.value = "false";
-		}
 	}
 </script>

@@ -48,6 +48,7 @@
 
 				$contentDocument = $job["ContentDocument"];
 				$hasContentDocument = $contentDocument != null;
+				$userCreatedJob = $job["CreatedById"] == $user->getId();
 
 				
 				if($hasAttachment) {
@@ -61,18 +62,18 @@
 				}
 			?>
 			<ul class="table-row"> 
-				<?php if($user->isAdmin() || $user->isOwner($job)): ?>
-					<li class="table-cell cart-first">
-						<a href="/job/edit/<?php print $job["Id"]; ?>">Edit</a>
-						<a href="/job/delete/Job__c/<?php print $job["Id"]; ?>">Delete</a>
+				<?php if($user->isAdmin() || $userCreatedJob): ?>
+					<li class="table-cell admin-area">
+						<a href="/job/edit/<?php print $job["Id"]; ?>">edit</a>
+						<a href="/job/delete/Job__c/<?php print $job["Id"]; ?>">delete</a>
 					</li>
 				<?php endif ?>
-				<?php if((!$user->isAdmin() && $user->isMember()) && !$user->isOwner($job)): ?>
+				<?php if((!$user->isAdmin() && $user->isMember()) && !$userCreatedJob): ?>
 					<li class="table-cell cart-first"></li>
 				<?php endif ?>
-				<li class="table-cell cart-middle"><?php print $job["Name"]; ?></li>
-				<li class="table-cell cart-middle"><?php print $job["PostingDate__c"]; ?></li>
-				<li class="table-cell cart-middle">
+				<li class="table-cell title"><?php print $job["Name"]; ?></li>
+				<li class="table-cell date"><?php print $job["PostingDate__c"]; ?></li>
+				<li class="table-cell date">
 					<?php if($job["OpenUntilFilled__c"]): ?>
 					<!--not showing up in form? -->
 						Open until filled
@@ -81,11 +82,11 @@
 						<?php print $job["ClosingDate__c"]; ?>
 					<?php endif; ?>
 				</li>
-				<li class="table-cell cart-middle"><?php print $job["Location__c"]; ?></li>
-				<li class="table-cell cart-middle"><?php print $job["Salary__c"]; ?></li>
+				<li class="table-cell location"><?php print $job["Location__c"]; ?></li>
+				<li class="table-cell salary"><?php print $job["Salary__c"]; ?></li>
 
 
-				<li class="table-cell cart-middle">
+				<li class="table-cell files">
 					<?php if($hasAttachment): ?>
 						<a title="<?php print $docName; ?>" target="_blank" href="/attachment/<?php print $attachedSObject["Id"]; ?>">
 							<?php print $filename; ?>
