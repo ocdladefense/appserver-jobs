@@ -7,7 +7,6 @@ use Http\HttpHeader;
 use Http\Http;
 use Http\HttpRequest;
 use Salesforce\ContentDocument;
-use function Session\get_current_user;
 
 
 class JobsModule extends Module
@@ -20,7 +19,7 @@ class JobsModule extends Module
 
 	public function home() {
 
-		$user = get_current_user();
+		$user = current_user();
 
 		$api = $this->loadForceApi();
 
