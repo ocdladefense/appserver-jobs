@@ -47,6 +47,17 @@ class JobsModule extends Module
 
 		$updatedJobRecords = $this->getContentDocument($jobRecords);
 
+/*
+			
+		<?php if(!isset($jobs) || (isset($jobs) && count($jobs) < 1)): ?>
+			<ul class="table-row">
+				<li>There are no current job postings.</li>
+			</ul>
+			
+		<?php else: ?>
+*/
+
+
 		$tpl = new ListTemplate("job-list");
 		$tpl->addPath(__DIR__ . "/templates");
 
