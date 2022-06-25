@@ -17,7 +17,7 @@ class JobsModule extends Module
 		parent::__construct();
 	}
 
-	public function home() {
+	public function list($list = null) {
 
 		$user = current_user();
 
