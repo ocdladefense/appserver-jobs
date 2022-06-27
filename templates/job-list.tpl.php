@@ -90,7 +90,7 @@
 						<?php print $filename; ?>
 					</a>
 				<?php elseif($hasContentDocument): ?>
-					<a title="<?php print $contentDocument["Title"]; ?>" target="_blank" href="/contentdocument/<?php print $contentDocument["Id"]; ?>">
+					<a title="<?php print $contentDocument["Title"]; ?>" target="_blank" href="/file/download/<?php print $contentDocument["Id"]; ?>">
 						<?php print $contentDocument["Title"]; ?>
 					</a>
 				<?php endif; ?>

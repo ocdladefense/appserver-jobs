@@ -4,9 +4,10 @@
 	"description": "View and post OCDLA jobs.",
 	"connectedApp": "default",
 	"files": ["ListTemplate.php"],
+	"dependencies":["file-service"],
 	"routes": {
 		"jobs": {
-			"callback":"home",
+			"callback":"list",
 			"content-type":"text\/html"
 		},
 		"jobs/new": {
@@ -32,14 +33,6 @@
 			"content-type": "text\/html",
 			"access": "is_authenticated",
 			"authorization":"webserver"
-		},
-		"attachment/%id":{
-			"callback": "getAttachment",
-			"content-type": "application/base64"
-		},
-		"contentDocument/%id":{
-			"callback": "downloadContentDocument",
-			"content-type": "application/base64"
 		},
 		"job/test":{
 			"callback": "testFunction",
