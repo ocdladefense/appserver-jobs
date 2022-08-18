@@ -46,3 +46,12 @@ li.table-cell {
         display:none;
     }
 }
+
+
+#stage {
+    width: 85%;
+}
+
+#container-right {
+    display:none;
+}
