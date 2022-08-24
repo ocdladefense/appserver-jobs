@@ -47,7 +47,7 @@ class JobsModule extends Module
 
 		$jobRecords = $resp->getRecords();
 
-		$service = new FileUploadModule();
+		$service = new FileServiceModule();
 		$updatedJobRecords = $service->getContentDocument($jobRecords);
 
 /*
@@ -79,7 +79,7 @@ class JobsModule extends Module
 	// Return an HTML form for creating or updating a new Job posting.
 	public function postingForm($job = null) {
 
-		$service = new FileUploadModule();
+		$service = new FileServiceModule();
 
 		$isEdit = $job == null ? false : true;
 		$attachments = $service->getAttachments($job["Id"]);
