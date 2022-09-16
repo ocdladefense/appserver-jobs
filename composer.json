@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "ocdladefense/lib-salesforce-rest-api":"dev-development",
-        "ocdladefense/appserver-file-service": "dev-main"
+        "ocdladefense/lib-salesforce-rest-api":"~3.0",
+        "ocdladefense/appserver-file-service": "~1.0"
     }
 }
