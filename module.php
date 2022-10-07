@@ -23,7 +23,7 @@ class JobsModule extends Module
 
 		$user = current_user();
 
-		$api = $this->loadForceApi();
+		$api = loadApi();
 
 		$today = new DateTime();
 		$removalDate = $today->modify("-3 days");
