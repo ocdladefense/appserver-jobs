@@ -12,6 +12,10 @@ use Salesforce\ContentDocument;
 class JobsModule extends Module
 {
 
+
+	const UPLOAD_RELATED_FILES = false;
+
+
 	public function __construct() {
 		
 		parent::__construct();
@@ -103,9 +107,7 @@ class JobsModule extends Module
 	// Gets form data from the request, inserts or updates a "Job__c" object, and returns the Id of the object.
 	public function createPosting() {
 
-		$doUploadFiles = true;
-
-		$sobjectName = "Job__c";
+		$api = $this->loadForceApi();
 		$req = $this->getRequest();
 
 		$files = $req->getFiles();
@@ -118,7 +120,8 @@ class JobsModule extends Module
 		unset($record->attachmentId);
 		
 		$record->OpenUntilFilled__c = $record->OpenUntilFilled__c == "" ? False : True;
-		if($record->OpenUntilFilled__c == true || empty($record->ClosingDate__c)){
+
+		if($record->OpenUntilFilled__c == true || empty($record->ClosingDate__c)) {
 
 			unset($record->ClosingDate__c);
 			$record->OpenUntilFilled__c = true;
@@ -127,14 +130,17 @@ class JobsModule extends Module
 		$record->IsActive__c = True;
 		$recordId = $record->Id;
 
-		$api = $this->loadForceApi();
-		$resp = $api->upsert($sobjectName, $record);
+		
+		$resp = $api->upsert("Job__c", $record);
+		$body = $resp->getBody();
 
-		if(!$resp->isSuccess()) throw new Exception($resp->getErrorMessage());
+		if(!$resp->isSuccess()) {
+			throw new Exception($resp->getErrorMessage());
+		}
 
-		$jobId = $resp->getBody()["id"] != null ? $resp->getBody()["id"] : $recordId;
+		$jobId = $body["id"] ?? $recordId;
 
-		if($numberOfFiles > 0 && $doUploadFiles) {
+		if(self::UPLOAD_RELATED_FILES && $numberOfFiles > 0) {
 
 			$contentDocumentLinkId = $this->uploadContentDocument($jobId, $existingContentDocumentId, $files->getFirst());
 		}
@@ -201,18 +207,42 @@ class JobsModule extends Module
 		return $contentDocumentLinkId;
 	}
 
-	public function insertContentDocument($doc){
 
-		// Pass true as the second parameter to force the usernamepassword flow.
-		$api = loadApi();
+
+
+	public function insertContentDocument($doc) {
+
+		
+		// Pass true as the second parameter to force the usernamepassword flow.	
+		$instanceUrl = cache_get("instance_url");
+		$accessToken = cache_get("access_token");
+		$client = new Salesforce\HttpClient($instanceUrl,$accessToken);
+
+
+
+		$req = new Salesforce\FileUploadRequest($doc);
+
+		
+
+		$resp = $client->send($req);
+		$body = $resp->getBody();
 
 		// Use "uploadFile" to upload a file as a Salesforce "ContentVersion" object.  A successful response contains the Id of the "ContentVersion" that was inserted.
-		$resp = $api->uploadFile($doc);
-		$contentVersionId = $resp->getBody()["id"];
+		// $resp = $api->uploadFile($doc);
+		$contentVersionId = $body["id"];
 
 		// Use the Id of the response to query for the "ContentVersion" object.  Then get the "ContentDocumentID" from the version.
-		$api = $this->loadForceApiFromFlow("usernamepassword");
-		$contentDocumentId = $api->query("SELECT ContentDocumentId FROM ContentVersion WHERE Id = '{$contentVersionId}'")->getRecords()[0]["ContentDocumentId"];
+		// $api = $this->loadForceApiFromFlow("usernamepassword"); // This code should be removed
+		// in favor of instantiating the HttpClient class.
+
+		// TODO: figure out why this code worked;
+		// Specifically, find the loadForceApiFromFlow.
+		// $api = $this->loadForceApiFromFlow("usernamepassword");
+		$req = new SOQLQueryRequest("SELECT ContentDocumentId FROM ContentVersion WHERE Id = '{$contentVersionId}'");
+		$resp = $client->send($req);
+		$record = $resp->getRecord();
+		// $records = $resp->getRecords()[0]["ContentDocumentId");
+		$contentDocumentId = $record["ContentDocumentId"];
 		
 		// Create a standard class representing a Salesforce "ContentDocumentLink" object setting the "ContentDocumentId" to the Id of the "ContentDocument" that
 		// was created when you inserted the "ContentVersion". 
@@ -223,16 +253,20 @@ class JobsModule extends Module
 		$link->linkedEntityId = $doc->getLinkedEntityId();
 		$link->visibility = "AllUsers";
 
-		$resp = $api->upsert("ContentDocumentLink", $link);
+		$req = SObjectRequest("ContentDocumentLink");
+		$req->upsert($link);
+		$resp = $client->send($req);
+		$body = $resp->getBody();
+		// $resp = $api->upsert("ContentDocumentLink", $link);
 
-		if(!$resp->isSuccess()){
+		
+		
 
-			$message = $resp->getErrorMessage();
-			throw new Exception($message);
-		}
-
-		return $resp->getBody()["id"];
+		return !$resp->isSuccess() ? null : $body["id"];
 	}
+
+
+
 
 	public function updateContentDocument($doc){
 
