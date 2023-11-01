@@ -47,7 +47,7 @@
 		<?php 
 			$attachedSObject = $job["Attachments"]["records"][0];
 			$docName = $attachedSObject["Name"];
-			$hasAttachment = $attachedSObject != null;
+			$hasAttachment = isset($job["AttachmentUrl__c"]);//$attachedSObject != null;
 
 			$contentDocument = $job["ContentDocument"];
 			$hasContentDocument = $contentDocument != null;
@@ -92,14 +92,14 @@
 
 
 			<li class="table-cell files">
-				<?php if(true): ?>
+				<?php if(false): ?>
 
 					attachment forthcoming
 				<?php elseif($hasAttachment): ?>
-					<a title="<?php print $docName; ?>" target="_blank" href="/attachment/<?php print $attachedSObject["Id"]; ?>">
-						<?php print $filename; ?>
+					<a title="<?php print $docName; ?>" target="_blank" href="<?php print $job["AttachmentUrl__c"]; ?>">
+						View attachment
 					</a>
-				<?php elseif($hasContentDocument): ?>
+				<?php elseif(false && $hasContentDocument): ?>
 					<a title="<?php print $contentDocument["Title"]; ?>" target="_blank" href="/file/download/<?php print $contentDocument["Id"]; ?>">
 						<?php print $contentDocument["Title"]; ?>
 					</a>
