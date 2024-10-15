@@ -12,10 +12,17 @@
 		</a>
 	</h5>
 
-
-<div>
+<style type="text/css">
+	.warning {
+		border: 1px solid red;
+		border-radius: 4px;
+		padding:8px;
+	}
+</style>
+<div style="margin-bottom:20px;">
 	<p>Welcome to OCDLA's Job Board. Job postings are removed three days after the Closing Date. Postings that are marked as "Open Until Filled" are removed six weeks after the Posting Date.</p>
 	<p>You may also email your posting description to <a href="mailto:cpainter@ocdla.org">cpainter@ocdla.org</a> and we will post the job. Include the job title, salary, location, and closing date.</p>
+	<p class="warning">We are currently working to fix an issue with Job Posting attachments.  In the meantime, please email your posting attachments to OCDLA.</p>
 </div>
 
 <div class="table" id="job-postings">
@@ -28,7 +35,7 @@
 		<li class="table-header">Title</li>
 		<li class="table-header">Posted</li>
 		<li class="table-header">Closes</li>
-		<li class="table-header">Location</li>
+		<li class="table-header">Organization</li>
 		<li class="table-header">Salary</li>
 		<li class="table-header">Documents</li>
 	</ul>
@@ -40,7 +47,7 @@
 		<?php 
 			$attachedSObject = $job["Attachments"]["records"][0];
 			$docName = $attachedSObject["Name"];
-			$hasAttachment = $attachedSObject != null;
+			$hasAttachment = isset($job["AttachmentUrl__c"]);//$attachedSObject != null;
 
 			$contentDocument = $job["ContentDocument"];
 			$hasContentDocument = $contentDocument != null;
@@ -80,16 +87,19 @@
 					<?php print $job["ClosingDate__c"]; ?>
 				<?php endif; ?>
 			</li>
-			<li class="table-cell location"><?php print $job["Location__c"]; ?></li>
+			<li class="table-cell location"><?php print $job["Organization__c"]; ?></li>
 			<li class="table-cell salary"><?php print $job["Salary__c"]; ?></li>
 
 
 			<li class="table-cell files">
-				<?php if($hasAttachment): ?>
-					<a title="<?php print $docName; ?>" target="_blank" href="/attachment/<?php print $attachedSObject["Id"]; ?>">
-						<?php print $filename; ?>
+				<?php if(false): ?>
+
+					attachment forthcoming
+				<?php elseif($hasAttachment): ?>
+					<a title="<?php print $docName; ?>" target="_blank" href="<?php print $job["AttachmentUrl__c"]; ?>">
+						View attachment
 					</a>
-				<?php elseif($hasContentDocument): ?>
+				<?php elseif(false && $hasContentDocument): ?>
 					<a title="<?php print $contentDocument["Title"]; ?>" target="_blank" href="/file/download/<?php print $contentDocument["Id"]; ?>">
 						<?php print $contentDocument["Title"]; ?>
 					</a>
