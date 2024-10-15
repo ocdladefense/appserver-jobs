@@ -38,7 +38,7 @@ class JobsModule extends Module
 		$openUntilFilledDeadline = $openUntilFilledDeadline->format("Y-m-d");
 
 		
-		$query = "SELECT Id, Name, Salary__c, CreatedById, PostingDate__c, ClosingDate__c, Location__c, OpenUntilFilled__c, AttachmentUrl__c, (SELECT Id, Name FROM Attachments) FROM Job__c";
+		$query = "SELECT Id, Name, Salary__c, CreatedById, PostingDate__c, Organization__c, ClosingDate__c, Location__c, OpenUntilFilled__c, AttachmentUrl__c, (SELECT Id, Name FROM Attachments) FROM Job__c";
 		
 		if(!$user->isAdmin()) $query .= " WHERE IsActive__c = True AND ((OpenUntilFilled__c = False AND ClosingDate__c >= $removalDate) OR (OpenUntilFilled__c = true AND postingDate__c >= $openUntilFilledDeadline))";
 

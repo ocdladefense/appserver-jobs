@@ -35,7 +35,7 @@
 		<li class="table-header">Title</li>
 		<li class="table-header">Posted</li>
 		<li class="table-header">Closes</li>
-		<li class="table-header">Location</li>
+		<li class="table-header">Organization</li>
 		<li class="table-header">Salary</li>
 		<li class="table-header">Documents</li>
 	</ul>
@@ -87,7 +87,7 @@
 					<?php print $job["ClosingDate__c"]; ?>
 				<?php endif; ?>
 			</li>
-			<li class="table-cell location"><?php print $job["Location__c"]; ?></li>
+			<li class="table-cell location"><?php print $job["Organization__c"]; ?></li>
 			<li class="table-cell salary"><?php print $job["Salary__c"]; ?></li>
 
 
